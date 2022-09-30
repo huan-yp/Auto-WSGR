@@ -21,19 +21,19 @@ quit()"""
 
 # ============TEST BATTLE=============
 
-"""battleship_battle_plan = BattlePlan(timer, 'plans\\battle\\hard_Battleship.yaml', 'plans\\default.yaml') # 指定 plan 参数和 default 参数
-for _ in range(1):
+battleship_battle_plan = BattlePlan(timer, 'plans\\battle\\hard_Battleship.yaml', 'plans\\default.yaml') # 指定 plan 参数和 default 参数
+for _ in range(8):
     pass
     battleship_battle_plan.run() # Plan 模块的运行需要调用成员函数 run
-                                 # 超出每日战役次数上限后运行会失败，但不会抛出异常"""
+                                 # 超出每日战役次数上限后运行会失败，但不会抛出异常
                             
 # ===========END=============
 
 
 # ===========TEST EXERCISE============
 
-"""exercise_plan = NormalExercisePlan(timer, 'plans\\exercise\\plan_1.yaml', 'plans\\default.yaml')
-exercise_plan.run()"""
+exercise_plan = NormalExercisePlan(timer, 'plans\\exercise\\plan_1.yaml', 'plans\\default.yaml')
+exercise_plan.run()
 
 # ===========END============
 
