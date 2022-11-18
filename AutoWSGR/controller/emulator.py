@@ -25,16 +25,18 @@ class Emulator():
     """模拟器管理单位,可以用于其它游戏
     """
 
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
+        self.resolution = None # 通过截屏自动获取
+        self.device_name = 'emulator-5554'  # 设备名,雷电模拟器默认值
+        
         self.start_time = time.time()
         self.log_filepre = get_time_as_string()
         self.screen = None
-        self.resolution = (960, 540)
-        self.device_name = 'emulator-5554'  # 设备名,雷电模拟器默认值
+        
         self.Windows = WindowsController(self.device_name)
 
     def connect(self, emulator):
-        # if(not self.Windows.is_android_online()):self.Windows.RestartAndroid() # TODO：功能重复
         self.device_name = emulator
         self.Windows.ConnectAndroid()
         self.update_screen()

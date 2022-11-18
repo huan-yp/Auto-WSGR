@@ -1,9 +1,12 @@
+import os
+
 import keyboard as kd
+import yaml
 
 from AutoWSGR.constants.settings import S
 from AutoWSGR.controller.run_timer import Timer
-from AutoWSGR.utils.io import yaml_to_dict
 from AutoWSGR.utils.debug import print_debug
+from AutoWSGR.utils.io import recursive_dict_update, yaml_to_dict
 
 event_pressed = set()
 script_end = 0
@@ -16,21 +19,6 @@ def lencmp(s1, s2):
     if (len(s1) > len(s2)):
         return -1
     return 0
-
-
-def start_script(settings_path=None, to_main_page=True):
-    """启动脚本,返回一个 Timer 记录器
-
-    Returns:
-        Timer: 该模拟器的记录器
-    """
-    if settings_path is not None:
-        user_settings = yaml_to_dict(settings_path)
-        S.__dict__.update(user_settings)
-    timer = Timer()
-    timer.setup(to_main_page)
-
-    return timer
 
 
 def listener(event: kd.KeyboardEvent):
@@ -47,3 +35,21 @@ def listener(event: kd.KeyboardEvent):
         script_end = 1
         print("Script end by user request")
         quit()
+
+
+def start_script(settings_path=None, to_main_page=True):
+    """启动脚本,返回一个 Timer 记录器
+
+    Returns:
+        Timer: 该模拟器的记录器
+    """
+    config = yaml_to_dict(os.path.join(os.path.dirname(__file__), "data", "default_settings.yaml"))
+        
+    if settings_path is not None:
+        user_settings = yaml_to_dict(settings_path)
+        config = recursive_dict_update(config, user_settings)
+    
+    timer = Timer(config)
+    timer.setup(to_main_page)
+
+    return timer
