@@ -25,10 +25,8 @@ class Timer(Emulator):
         """Todo
         参考银河远征的战斗模拟写一个 Ship 类,更好的保存信息
         """
-        # 模拟器通用设置
         super().__init__(config, logger)
-
-        # 战舰少女R专用
+        self.everyday_check = True  # 是否需要进行每日登录奖励处理
         self.now_page = None
         self.ui = WSGR_UI
         self.ship_status = [0, 0, 0, 0, 0, 0, 0]  # 我方舰船状态
@@ -77,17 +75,17 @@ class Timer(Emulator):
         self.logger.info(f"Now at: {self.now_page}")
 
     # ========================= 初级游戏控制 =========================
-    #@logit(level=INFO3)
+    # @logit(level=INFO3)
     def log_in(self, account, password):
         pass
 
-    #@logit(level=INFO3)
+    # @logit(level=INFO3)
     def log_out(self, account, password):
         """在登录界面登出账号
         """
         pass
 
-    #@logit(level=INFO3)
+    # @logit(level=INFO3)
     def start_game(self, account=None, password=None, delay=1.0):
         """启动游戏(实现不优秀,需重写)
 
@@ -141,18 +139,20 @@ class Timer(Emulator):
             if (delay > 16):
                 raise ImageNotFoundErr("can't start game")
         try:
-            if (self.wait_image(IMG.start_image[6], timeout=2) != False):  # 新闻与公告,设为今日不再显示
-                if (not self.check_pixel((70, 485), (201, 129, 54))):
-                    self.Android.click(70, 485)
-                self.Android.click(30, 30)
-            if (self.wait_image(IMG.start_image[7], timeout=7) != False):  # 每日签到
-                self.Android.click(474, 357)
-                self.ConfirmOperation(must_confirm=1, timeout=2)
+            if self.everyday_check:
+                if (self.wait_image(IMG.start_image[6], timeout=2) != False):  # 新闻与公告,设为今日不再显示
+                    if (not self.check_pixel((70, 485), (201, 129, 54))):
+                        self.Android.click(70, 485)
+                    self.Android.click(30, 30)
+                if (self.wait_image(IMG.start_image[7], timeout=7) != False):  # 每日签到
+                    self.Android.click(474, 357)
+                    self.ConfirmOperation(must_confirm=1, timeout=2)
+                self.everyday_check = False
             self.go_main_page()
         except:
             raise BaseException("fail to start game")
 
-    #@logit(level=INFO3)
+    # @logit(level=INFO3)
     def restart(self, times=0, *args, **kwargs):
         try:
             self.Android.ShellCmd("am force-stop com.huanmeng.zhanjian2")
@@ -179,19 +179,19 @@ class Timer(Emulator):
             self.Windows.ConnectAndroid()
             self.restart(times + 1, *args, **kwargs)
 
-    #@logit(level=INFO1)
+    # @logit(level=INFO1)
     def is_bad_network(self, timeout=10):
         return self.wait_images([IMG.error_image['bad_network'][0], IMG.symbol_image[10]], timeout=timeout) != None
 
-    #@logit(level=INFO2)
-    def process_bad_network(self, extra_info=""):
+    # @logit(level=INFO2)
+    def process_bad_network(self, extra_info="", timeout=10):
         """判断并处理网络状况问题
         Returns:
             bool: 如果为 True 则表示为网络状况问题,并已经成功处理,否则表示并非网络问题或者处理超时.
         Raise:
             TimeoutError:处理超时
         """
-        start_time = time.time()
+        start_time = time.time(timeout)
         while self.is_bad_network():
             self.logger.error(f"bad network: {extra_info}")
             while True:
@@ -215,14 +215,14 @@ class Timer(Emulator):
         return False
 
     # ========================= 维护当前所在游戏界面 =========================
-    #@logit()
+    # @logit()
     def _intergrative_page_identify(self):
         positions = [(171, 47), (300, 47), (393, 47), (504, 47), (659, 47)]
         for i, position in enumerate(positions):
             if self.check_pixel(position, (225, 130, 16)):
                 return i + 1
 
-    #@logit()
+    # @logit()
     def identify_page(self, name, need_screen_shot=True):
         if need_screen_shot:
             self.update_screen()
@@ -238,7 +238,7 @@ class Timer(Emulator):
 
         return any(self.image_exist(template, 0) for template in IMG.identify_images[name])
 
-    #@logit()
+    # @logit()
     def wait_pages(self, names, timeout=5, gap=.1, after_wait=0.1):
         start_time = time.time()
         if (isinstance(names, str)):
@@ -256,7 +256,7 @@ class Timer(Emulator):
 
         raise TimeoutError(f"identify timeout of{str(names)}")
 
-    #@logit(level=INFO1)
+    # @logit(level=INFO1)
     def get_now_page(self):
         """获取并返回当前页面名称
         """
@@ -266,7 +266,7 @@ class Timer(Emulator):
                 return page
         return 'unknown_page'
 
-    #@logit()
+    # @logit()
     def check_now_page(self):
         return self.identify_page(name=self.now_page.name)
 
@@ -360,7 +360,7 @@ class Timer(Emulator):
                         raise ValueError('unknown error')
                 self.walk_to(end)
 
-    #@logit(level=INFO2)
+    # @logit(level=INFO2)
     def go_main_page(self, QuitOperationTime=0, List=[], ExList=[]):
         """回退到游戏主页
 
@@ -396,7 +396,7 @@ class Timer(Emulator):
         NewList = List[1:] + [List[0]]
         self.go_main_page(QuitOperationTime + 1, NewList)
 
-    #@logit(level=INFO2)
+    # @logit(level=INFO2)
     def goto_game_page(self, target='main', extra_check=False):
         """到某一个游戏界面
 
@@ -407,7 +407,7 @@ class Timer(Emulator):
         if extra_check:
             self.wait_pages(names=[self.now_page.name])
 
-    #@logit(level=INFO2)
+    # @logit(level=INFO2)
     def ConfirmOperation(self, must_confirm=0, delay=0.5, confidence=.9, timeout=0):
         """等待并点击弹出在屏幕中央的各种确认按钮
 

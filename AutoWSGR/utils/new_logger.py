@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-import wandb
+# import wandb
 
 from .io import save_image
 
@@ -41,9 +41,9 @@ class Logger:
     #                config=self.config)
 
     def debug(self, condition, *args):
-        if(condition):
+        if (condition):
             print(*args)
-    
+
     def info(self, string):
         self.console_logger.info(string)
 
@@ -56,7 +56,7 @@ class Logger:
         self.console_logger.error("===================ERROR===================")
         self.console_logger.error(string)
         self.console_logger.error("====================END====================")
-    
+
     def log_stat(self, key, value, t, tag='train'):
         self.info(f"{tag} {key}: {value:.4f}")
 

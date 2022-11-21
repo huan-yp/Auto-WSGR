@@ -47,13 +47,13 @@ class NormalFightInfo(FightInfo):
             "spot_enemy_success": {
                 "detour": ["fight_condition", "spot_enemy_success", "formation"],
                 "retreat": ["map_page"],
-                "fight": ["formation"],
+                "fight": ["formation", "fight_period"],
             },
             "formation": ["fight_period"],
             "fight_period": ["night", "result"],
             "night": {
                 "yes": ["result"],
-                "no": [["result", 5]],
+                "no": [["result", 10]],
             },
             "result": ["proceed", "map_page", "get_ship", "flagship_severe_damage"],  # 两页战果
             "get_ship": ["proceed", "map_page", "flagship_severe_damage"],  # 捞到舰船
@@ -71,6 +71,11 @@ class NormalFightInfo(FightInfo):
             "get_ship": [IMG.symbol_image[8], 5],
             "flagship_severe_damage": [IMG.fight_image[4], 5],
             "map_page": [self.map_image, 5]
+        }
+        
+        self.after_match_delay = {
+            "night":1,
+            "proceed":.5
         }
 
     def reset(self):
@@ -136,6 +141,7 @@ class NormalFightInfo(FightInfo):
             print(self.node)
 
     def load_point_positions(self, map_path):
+        """ 地图文件命名格式: [chapter]-[map].yaml """
         self.point_positions = yaml_to_dict(os.path.join(map_path, str(self.chapter) + "-" + str(self.map) + ".yaml"))
 
 
@@ -159,12 +165,13 @@ def _check_blood(blood, rule) -> bool:
 
 class NormalFightPlan(FightPlan):
     """" 常规战斗的决策模块 """
+    """ 多点战斗基本模板 """
 
-    def __init__(self, timer: Timer, plan_path, fleet_id=1) -> None:
+    def __init__(self, timer: Timer, plan_path, fleet_id=None) -> None:
         """初始化决策模块,可以重新指定默认参数,优先级更高
 
         Args:
-
+            fleet_id: 指定舰队编号, 如果为 None 则使用计划中的参数
         Raises:
             BaseException: _description_
         """
@@ -172,14 +179,21 @@ class NormalFightPlan(FightPlan):
 
         # 从配置文件加载计划
         default_args = yaml_to_dict(os.path.join(PLAN_ROOT, "default.yaml"))
+        plan_args = yaml_to_dict(os.path.join(PLAN_ROOT, plan_path))
+        
+        # 从参数加载计划
+        if fleet_id is not None:
+            plan_args['fleet_id'] = fleet_id # 舰队编号
+        
+        # 检查参数完整情况
+        if "fleet_id" not in plan_args:
+            print_war("fleet_id not set", "Default arg 1 will be used")
+        
+        # 从默认参数加载
         plan_defaults = default_args["normal_fight_defaults"]
         plan_defaults.update({"node_defaults": default_args["node_defaults"]})
-        plan_args = yaml_to_dict(os.path.join(PLAN_ROOT, plan_path))
         args = recursive_dict_update(plan_defaults, plan_args, skip=['node_args'])
         self.__dict__.update(args)
-
-        # 从参数加载计划
-        self.fleet_id = fleet_id  # 舰队编号
 
         # 加载节点配置
         self.nodes = {}
@@ -188,17 +202,21 @@ class NormalFightPlan(FightPlan):
             if 'node_args' in plan_args and plan_args['node_args'] is not None and node_name in plan_args['node_args']:
                 node_args = recursive_dict_update(node_args, plan_args['node_args'][node_name])
             self.nodes[node_name] = NodeLevelDecisionBlock(timer, node_args)
+        self.load_fight_info()        
 
+    def load_fight_info(self):
         # 信息记录器
         self.Info = NormalFightInfo(self.timer, self.chapter, self.map)
         self.Info.load_point_positions(os.path.join(MAP_ROOT, 'normal'))
-
+    
     def go_map_page(self):
-        """进入选择战斗地图的页面
-        """
+        """ 活动多点战斗必须重写该模块 """
+        """ 进入选择战斗地图的页面 """
+        """ 这个模块负责的工作在战斗结束后如果需要进行重复战斗, 则不会进行 """
         self.timer.goto_game_page('map_page')
 
     def go_fight_prepare_page(self) -> None:
+        """ 活动多点战斗必须重写该模块 """
         """(从当前战斗结束后跳转到的页面)进入准备战斗的页面"""
         self.timer.goto_game_page('fight_prepare_page')
 
@@ -212,7 +230,7 @@ class NormalFightPlan(FightPlan):
             self.go_map_page()
             self._change_fight_map(self.chapter, self.map)
         try:
-            assert (self.timer.wait_image(self.Info.map_image) != False)
+            assert (self.timer.wait_images(self.Info.map_image) != None)
             self.go_fight_prepare_page()
             MoveTeam(self.timer, self.fleet_id)
             QuickRepair(self.timer, self.repair_mode)
@@ -229,8 +247,7 @@ class NormalFightPlan(FightPlan):
 
         if self.config.SHOW_FIGHT_STAGE:
             print(self.fight_recorder.last_stage)
-        self.Info.update_state()
-        state = self.Info.state
+        state = self.update_state()
         # 进行MapLevel的决策
         if state == "map_page":
             return "fight end"
@@ -413,6 +430,8 @@ class NormalFightPlan(FightPlan):
 
     #@logit(level=INFO3)
     def _change_fight_map(self, chapter_id, map_id):
+        """ 活动多点战斗必须重写该模块 """
+        """ 这个模块负责的工作在战斗结束后如果需要进行重复战斗, 则不会进行 """
         """在地图界面改变战斗地图(通常是为了出征)
         可以处理网络错误
         Args:
