@@ -1,26 +1,22 @@
 import copy
 import time
 from abc import ABC, abstractmethod
-from functools import partial
 
-from AutoWSGR.constants.custom_expections import ImageNotFoundErr, NetworkErr
+from AutoWSGR.constants.custom_exceptions import ImageNotFoundErr, NetworkErr
 from AutoWSGR.constants.image_templates import IMG
 from AutoWSGR.constants.other_constants import (ALL_SHIP_TYPES, INFO1, INFO2,
                                                 SAP)
 from AutoWSGR.constants.positions import BLOODLIST_POSITION
-from AutoWSGR.constants.settings import S
-from AutoWSGR.controller.run_timer import Timer, process_error
+from AutoWSGR.controller.run_timer import Timer
 from AutoWSGR.game.game_operation import get_ship
-from AutoWSGR.utils.debug import print_err
-from AutoWSGR.utils.function_wrapper import try_for_times
 from AutoWSGR.utils.io import recursive_dict_update, yaml_to_dict
-from AutoWSGR.utils.logger import logit
+# from AutoWSGR.utils.logger import logit
 from AutoWSGR.utils.math_functions import get_nearest
 from AutoWSGR.utils.operator import remove_0_value_from_dict
 
 
-@logit(level=INFO2)
-def start_march(timer:Timer, position=(900, 500)):
+#@logit(level=INFO2)
+def start_march(timer: Timer, position=(900, 500)):
     timer.Android.click(*position, 1, delay=0)
     start_time = time.time()
     while timer.identify_page('fight_prepare_page'):
@@ -61,11 +57,12 @@ class Ship():
 class FightResult():
     def __init__(self, timer: Timer):
         self.timer = timer
+        self.logger = timer.logger
         self.result = 'D'
         self.mvp = 0
         self.experiences = [None, 0, 0, 0, 0, 0, 0]
 
-    @logit(level=INFO1)
+    #@logit(level=INFO1)
     def detect_result(self):
         mvp_pos = self.timer.get_image_position(IMG.fight_image[14])
         self.mvp = get_nearest((mvp_pos[0], mvp_pos[1] + 20), BLOODLIST_POSITION[1])
@@ -110,6 +107,9 @@ class FightInfo(ABC):
 
     def __init__(self, timer: Timer) -> None:
         self.timer = timer
+        self.config = timer.config
+        self.logger = timer.logger
+        
         self.successor_states = {}  # 战斗流程的有向图建模，在不同动作有不同后继时才记录动作
         self.state2image = {}  # 所需用到的图片模板。格式为 [模板，等待时间]
         self.last_state = ""
@@ -132,35 +132,34 @@ class FightInfo(ABC):
                 state, timeout = state
                 possible_states[i] = state
                 modified_timeout[i] = timeout
-        if (S.SHOW_MATCH_FIGHT_STAGE):
+        if (self.config.SHOW_MATCH_FIGHT_STAGE):
             print("waiting:", possible_states, end="  ")
         images = [self.state2image[state][0] for state in possible_states]
         timeout = [self.state2image[state][1] for state in possible_states]
         confidence = min([0.8] + [self.state2image[state][2] for state in possible_states if len(self.state2image[state]) >= 3])
         timeout = [timeout[i] if modified_timeout[i] == -1 else modified_timeout[i] for i in range(len(timeout))]
         timeout = max(timeout)
-        
-        
+
         # 等待其中一种出现
         fun_start_time = time.time()
         while time.time() - fun_start_time <= timeout:
             self._before_match()
 
             # 尝试匹配
-            ret = [self.timer.images_exist(image, 0, confidence=confidence, no_log=True) for image in images]
+            ret = [self.timer.images_exist(image, 0, confidence=confidence) for image in images]
             if any(ret):
                 self.state = possible_states[ret.index(True)]
-                if (S.SHOW_MATCH_FIGHT_STAGE):
+                if (self.config.SHOW_MATCH_FIGHT_STAGE):
                     print("matched:", self.state)
                 self._after_match()
 
                 return self.state
 
         # 匹配不到时报错
-        print_err(f"state: {self.state} last_action: {self.last_action}", "匹配状态失败,时间戳:" + time.ctime())
+        self.logger.error(f"匹配状态失败! state: {self.state}  last_action: {self.last_action}")
         self.timer.log_screen(True)
         for image in images:
-            self.timer.log_image(image, f"match_{str(time.time())}.PNG")
+            self.logger.log_image(image, f"match_{str(time.time())}.PNG")
         raise ImageNotFoundErr()
 
     @abstractmethod
@@ -237,6 +236,9 @@ class FightPlan(ABC):
     def __init__(self, timer: Timer):
         # 把timer引用作为内置对象，减少函数调用的时候所需传入的参数
         self.timer = timer
+        self.config = timer.config
+        self.logger = timer.logger
+        
         self.fight_recorder = FightRecorder()
 
     def fight(self):
@@ -251,7 +253,7 @@ class FightPlan(ABC):
             elif ret == "fight end":
                 self.timer.set_page(self.Info.end_page)
                 return 'success'
-                
+
     def run(self, same_work=False):
         """ 主函数，负责一次完整的战斗. """
         self.fight_recorder.reset()
@@ -267,7 +269,7 @@ class FightPlan(ABC):
         elif ret == "out of times":
             return ret
         else:
-            print_err("无法进入战斗,原因未知", '屏幕状态已记录,时间戳:' + str(time.time()))
+            self.logger.error("无法进入战斗,原因未知! 屏幕状态已记录")
             self.timer.log_screen()
             raise BaseException(str(time.time()) + "enter fight error")
 
@@ -283,7 +285,7 @@ class FightPlan(ABC):
         pass
 
     # =============== 战斗中通用的操作 ===============
-    @logit(level=INFO2)
+    #@logit(level=INFO2)
     def SL(self):
         self.timer.restart()
         self.timer.go_main_page()
@@ -293,6 +295,9 @@ class FightPlan(ABC):
 class DecisionBlock():
     def __init__(self, timer: Timer, args):
         self.timer = timer
+        self.config = timer.config
+        self.logger = timer.logger
+        
         self.__dict__.update(args)
 
         # 用于根据规则设置阵型
@@ -314,7 +319,7 @@ class DecisionBlock():
                     rcondition += ch
                     last = i + 1
 
-            if (S.SHOW_ENEMY_RUELS):
+            if (self.config.SHOW_ENEMY_RUELS):
                 print(rcondition)
             if eval(rcondition):
                 return act
@@ -353,15 +358,14 @@ class DecisionBlock():
         elif state == "formation":
             spot_enemy = last_state == "spot_enemy_success"
             value = self.formation
-            if(_action is not None):
+            if (_action is not None):
                 value = _action
             if spot_enemy:
                 if self.SL_when_detour_fails and last_action == "detour":
                     return None, "need SL"
 
                 if self.set_formation_by_rule:
-                    if (S.DEBUG):
-                        print("set formation by rule:", self.formation_by_rule)
+                    self.logger.debug("set formation by rule:", self.formation_by_rule)
                     value = self.formation_by_rule
                     self.set_formation_by_rule = False
 
@@ -374,7 +378,7 @@ class DecisionBlock():
             return value, "fight continue"
         elif state == "night":
             is_night = self.night
-            if(_action is not None):
+            if (_action is not None):
                 is_night = _action
             if is_night:
                 self.timer.Android.click(325, 350, delay=.5)
@@ -390,7 +394,7 @@ class DecisionBlock():
             get_ship(self.timer)
             return None, "fight continue"
         else:
-            print("===========Unknown State==============")
+            self.logger.error("===========Unknown State==============")
             raise BaseException()
 
 
@@ -406,7 +410,7 @@ class NodeLevelDecisionBlock(DecisionBlock):
 
 
 class IndependentFightPlan(FightPlan):
-    def __init__(self, timer:Timer, end_image, plan_path=None, default_path='plans/default.yaml', *args, **kwargs):
+    def __init__(self, timer: Timer, end_image, plan_path=None, default_path='plans/default.yaml', *args, **kwargs):
         """创建一个独立战斗模块,处理从形如战役点击出征到收获舰船(或战果结算)的整个过程
         Args:
             end_image (MyTemplate): 整个战斗流程结束后的图片
@@ -414,17 +418,17 @@ class IndependentFightPlan(FightPlan):
         super().__init__(timer)
         default_args = yaml_to_dict(default_path)
         node_defaults = default_args["node_defaults"]
-        if(plan_path is not None):
+        if (plan_path is not None):
             node_args = yaml_to_dict(plan_path)
         else:
             node_args = kwargs
         node_args = recursive_dict_update(node_defaults, node_args)
         self.decision_block = NodeLevelDecisionBlock(timer, node_args)
         self.Info = IndependentFightInfo(timer, end_image)
-        
+
     def run(self):
         super().fight()
-        
+
     def _make_decision(self):
         self.Info.update_state()
         if self.Info.state == "battle_page":
@@ -478,9 +482,8 @@ class IndependentFightInfo(FightInfo):
     def _before_match(self):
         # 点击加速
         if self.state in ["proceed"]:
-            p = self.timer.Android.click(380, 520, delay=0, enable_subprocess=True, print=0, no_log=True)
+            p = self.timer.Android.click(380, 520, delay=0, enable_subprocess=True)
         self.timer.update_screen()
 
     def _after_match(self):
         pass  # 战役的敌方信息固定，不用获取
-    

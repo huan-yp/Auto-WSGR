@@ -1,12 +1,13 @@
-LDPLAYER_ROOT: r"C:\leidian\LDPlayer9"
-SHIPNAME_PATH: f"{DATA_ROOT}/ocr/ship_name.yaml"
+# ========== 游戏设置 ==========
+LDPLAYER_ROOT: C:/leidian/LDPlayer9
 LOG_PATH: "log"
 DELAY: 2
 
 device_name: "emulator-5554"
-account: None
-password: None
+account:
+password:
 
+# ========== Logger设置 ==========
 DEBUG: False
 SHOW_MAP_NODE: False
 SHOW_ANDROID_INPUT: False
@@ -17,7 +18,7 @@ SHOW_MATCH_FIGHT_STAGE: False
 SHOW_DECISIVE_BATTLE_INFO: False
 SHOW_OCR_INFO: False
 
-
+# ========== 日常挂机策略设置 ==========
 Auto_Expedition: True # 自动重复远征
 Auto_Gain_Bonus: True # 当有任务完成时自动点击
 Auto_Bath_Repair: True # 空闲时自动澡堂修理
