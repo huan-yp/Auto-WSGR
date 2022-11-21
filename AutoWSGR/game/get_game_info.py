@@ -123,10 +123,11 @@ def GetEnemyCondition(timer: Timer, type='exercise', *args, **kwargs):
     timer.enemy_type_count[NAP] -= timer.enemy_type_count['AP'] - timer.enemy_type_count[SAP]
 
     if (timer.config.DEBUG):
+        info = ""
         for key, value in timer.enemy_type_count.items():
             if (value != 0 and key != 'AP'):
-                print(key, ':', value, end=',')
-        print("")
+                info += f"{key}:{value},"
+        timer.logger.debug(info)
 
 
 # @logit(level=INFO1)
@@ -178,7 +179,7 @@ def DetectShipStatu(timer: Timer, type='prepare'):
             result[i]=CheckColor(pixel, BLOOD_COLORS[1])
     timer.ship_status=result
     if timer.config.DEBUG:
-        print(type, ":ship_status =", result)
+        timer.logger.debug(f"{type}:ship_status={result}")
     return result
 
 

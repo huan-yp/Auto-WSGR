@@ -56,18 +56,18 @@ def convert_area(area, resolution, mode='960_to_this'):
     """转化矩阵格式(放缩)
 
     Args:
-        area list(left, top, right, button): 矩阵,列表或者元组
+        area list(left, top, right, bottom): 矩阵,列表或者元组
         mode (str): 工作模式
             values:
                 '960_to_this':将 960x540 格式转化为当前模拟器屏幕坐标
                 'this_to_960':将当前模拟器屏幕坐标转化为 960x540 格式
 
     Returns:
-        (left, top, right, button): 转化后的矩阵(元组)
+        (left, top, right, bottom): 转化后的矩阵(元组)
     """
     left, top = convert_position(area[0], area[1], resolution, mode)
-    right, button = convert_position(area[2], area[3], resolution, mode)
-    return (left, top, right, button)
+    right, bottom = convert_position(area[2], area[3], resolution, mode)
+    return (left, top, right, bottom)
 
 
 def locateCenterOnImage(image: np.ndarray, query: MyTemplate, confidence=0.85, this_methods=None):
