@@ -96,6 +96,7 @@ class Timer(Emulator):
         Raises:
             NetworkErr: _description_
         """
+        self.logger.info(f"Game Start")
         self.Android.start_app("com.huanmeng.zhanjian2")
         res = self.wait_images([IMG.start_image[2]] + IMG.confirm_image[1:], 0.85, timeout=70 * delay)
 
@@ -134,12 +135,14 @@ class Timer(Emulator):
         delay = 2
         while self.image_exist(IMG.start_image[2]):
             self.click_image(IMG.start_image[2])
-            time.sleep(delay)
+            if self.wait_image(IMG.game_ui[3], timeout=delay):
+                break
             delay *= 2
             if (delay > 16):
                 raise ImageNotFoundErr("can't start game")
         try:
             if self.everyday_check:
+                self.logger.info("checking notice and signing in")
                 if (self.wait_image(IMG.start_image[6], timeout=2) != False):  # 新闻与公告,设为今日不再显示
                     if (not self.check_pixel((70, 485), (201, 129, 54))):
                         self.Android.click(70, 485)
@@ -147,14 +150,17 @@ class Timer(Emulator):
                 if (self.wait_image(IMG.start_image[7], timeout=7) != False):  # 每日签到
                     self.Android.click(474, 357)
                     self.ConfirmOperation(must_confirm=1, timeout=2)
+                    self.logger.info("sign in successfully")
                 self.everyday_check = False
             self.go_main_page()
+            self.logger.info(f"Game Start Successfully")
         except:
             raise BaseException("fail to start game")
 
     # @logit(level=INFO3)
     def restart(self, times=0, *args, **kwargs):
         try:
+            self.logger.info(f"Game Closed")
             self.Android.ShellCmd("am force-stop com.huanmeng.zhanjian2")
             self.Android.ShellCmd("input keyevent 3")
             self.start_game(**kwargs)

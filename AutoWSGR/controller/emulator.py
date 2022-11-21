@@ -12,6 +12,7 @@ from AutoWSGR.utils.api_image import (MyTemplate, convert_position,
                                       locateCenterOnImage)
 # from AutoWSGR.utils.logger import get_time_as_string, logit
 from AutoWSGR.utils.math_functions import CalcDis
+from AutoWSGR.utils.new_logger import Logger
 
 from .android_controller import AndroidController
 from .windows_controller import WindowsController
@@ -21,7 +22,7 @@ class Emulator():
     """模拟器管理单位,可以用于其它游戏
     """
 
-    def __init__(self, config, logger):
+    def __init__(self, config, logger:Logger):
         # 获取设置，初始化windows控制器
         self.config = config
         self.logger = logger

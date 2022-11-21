@@ -8,7 +8,7 @@ from AutoWSGR.constants.other_constants import (ALL_SHIP_TYPES, INFO1, INFO2,
                                                 SAP)
 from AutoWSGR.constants.positions import BLOODLIST_POSITION
 from AutoWSGR.controller.run_timer import Timer
-from AutoWSGR.game.game_operation import get_ship
+from AutoWSGR.game.game_operation import get_ship, Expedition
 from AutoWSGR.utils.io import recursive_dict_update, yaml_to_dict
 # from AutoWSGR.utils.logger import logit
 from AutoWSGR.utils.math_functions import get_nearest
@@ -134,7 +134,7 @@ class FightInfo(ABC):
                 possible_states[i] = state
                 modified_timeout[i] = timeout
         if (self.config.SHOW_MATCH_FIGHT_STAGE):
-            print("waiting:", possible_states, end="  ")
+            self.logger.debug(f"waiting:{str(possible_states)}")
         images = [self.state2image[state][0] for state in possible_states]
         timeout = [self.state2image[state][1] for state in possible_states]
         confidence = min([0.8] + [self.state2image[state][2] for state in possible_states if len(self.state2image[state]) >= 3])
@@ -156,7 +156,7 @@ class FightInfo(ABC):
                     time.sleep(delay)
                     
                 if (self.config.SHOW_MATCH_FIGHT_STAGE):
-                    print("matched:", self.state)
+                    self.logger.debug(f"matched:{self.state}")
                 self._after_match()
 
                 return self.state
@@ -260,6 +260,23 @@ class FightPlan(ABC):
                 self.timer.set_page(self.Info.end_page)
                 return 'success'
 
+    def run_for_times(self, times, expedion_gap=1900):
+        """多次执行同一任务
+        Args:
+            times (int): 任务执行总次数
+            expedion_gap (int, optional): 远征检查时间间隔. Defaults to 1900.
+        """
+        assert(times >= 1)
+        self.run()
+        for _ in range(1, times):
+            if time.time() - self.timer.last_expedition_checktime >= expedion_gap:
+                expedition = Expedition(self.timer)
+                expedition.run(True)
+                self.timer.last_expedition_checktime = time.time()
+                self.run()
+            else:
+                self.run(same_work=True)
+    
     def run(self, same_work=False):
         """ 主函数，负责一次完整的战斗. """
         self.fight_recorder.reset()
@@ -288,7 +305,7 @@ class FightPlan(ABC):
             state = self.Info.state
         except ImageNotFoundErr as _:
             # 处理点击延迟或者网络波动导致的匹配失败
-            print_err("ImageNotFoundErr", "Image Match Failed, Processing")
+            self.timer.logger.error("ImageNotFoundErr, Image Match Failed, Processing")
             if self.timer.process_bad_network(timeout=2.5):
                 pass
             if self.Info.last_state in ['proceed', 'night']:
@@ -344,7 +361,8 @@ class DecisionBlock():
                     last = i + 1
 
             if (self.config.SHOW_ENEMY_RUELS):
-                print(rcondition)
+                self.logger.debug(f"rules:{rcondition}")
+                
             if eval(rcondition):
                 return act
 

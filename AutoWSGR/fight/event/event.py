@@ -1,12 +1,11 @@
 import os
 
 from AutoWSGR.constants.data_roots import IMG_ROOT
-from AutoWSGR.constants.custom_expections import ImageNotFoundErr
+from AutoWSGR.constants.custom_exceptions import ImageNotFoundErr
 from AutoWSGR.constants.image_templates import (
     IMG, make_dir_templates, make_dir_templates_without_number)
 from AutoWSGR.controller.run_timer import Timer
 from AutoWSGR.utils.math_functions import CalcDis
-from AutoWSGR.utils.debug import print_err
 
 
 class Event():
@@ -36,7 +35,7 @@ class Event():
         """
         res = self.timer.wait_images(self.common_image['hard'] + self.common_image['easy'])
         if res is None:
-            print_err("ImageNotFoundErr", "difficulty image not found")
+            self.timer.logger.warning("ImageNotFoundErr,difficulty image not found")
             self.timer.log_screen()
             raise ImageNotFoundErr()
         

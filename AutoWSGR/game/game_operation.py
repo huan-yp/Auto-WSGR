@@ -142,7 +142,7 @@ def verify_team(timer: Timer):
     if timer.process_bad_network():
         return verify_team(timer)
 
-    timer.timer.log_screen()
+    timer.logger.log_screen()
     raise ImageNotFoundErr()
 
 
@@ -161,12 +161,12 @@ def MoveTeam(timer: Timer, target, try_times=0):
         raise ValueError("can't change team sucessfully")
 
     if (timer.identify_page('fight_prepare_page') == False):
-        timer.timer.log_screen()
+        timer.logger.log_screen()
         raise ImageNotFoundErr("not on 'fight_prepare_page' ")
 
     if (verify_team(timer) == target):
         return
-    print("正在切换队伍到:", target)
+    timer.logger.info(f"正在切换队伍到:{target}")
     timer.Android.click(110 * target, 81)
     if (verify_team(timer) != target):
         MoveTeam(timer, target, try_times + 1)
