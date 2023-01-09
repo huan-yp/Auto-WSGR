@@ -17,19 +17,19 @@ class Expedition:
         self.is_ready = False
         self.last_check = time.time()
 
-    #@logit(level=INFO1)
+    # @logit(level=INFO1)
     def update(self, force=False):
         self.timer.update_screen()
-        if  (isinstance(self.timer.now_page, str) and 'unknow' in self.timer.now_page)\
-            or self.timer.now_page.name not in ['expedition_page', 'map_page', 'battle_page', 'exercise_page', 'decisive_battle_entrance']:
+        if (isinstance(self.timer.now_page, str) and 'unknow' in self.timer.now_page)\
+                or self.timer.now_page.name not in ['expedition_page', 'map_page', 'battle_page', 'exercise_page', 'decisive_battle_entrance']:
             if (force or time.time() - self.last_check > 1800):
                 self.timer.goto_game_page('main_page')
             if (self.timer.now_page.name == 'main_page'):
                 self.is_ready = self.timer.check_pixel((933, 454), bgr_color=(45, 89, 255))
         else:
             self.is_ready = self.timer.check_pixel((464, 11), bgr_color=(45, 89, 255))
-            
-    #@logit(level=INFO3)
+
+    # @logit(level=INFO3)
     def run(self, force=False):
         """检查远征,如果有未收获远征,则全部收获并用原队伍继续
 
@@ -50,72 +50,33 @@ class Expedition:
                 break
 
 
-#@logit(level=INFO2)
-def get_ship(timer:Timer, max_times=1):
-    times = 0 
+# @logit(level=INFO2)
+def get_ship(timer: Timer, max_times=1):
+    times = 0
     timeout = 5
-    while(timer.wait_image(IMG.symbol_image[8], timeout=timeout) and times < max_times):
+    while (timer.wait_image(IMG.symbol_image[8], timeout=timeout) and times < max_times):
         timer.Android.click(900, 500, delay=.25)
         timeout = 2
         times += 1
 
 
-#@logit(level=INFO3)
-def DestroyShip(timer: Timer, reserve=1, amount=1):
-    # 解装舰船
+# @logit(level=INFO3)
+def DestroyShip(timer: Timer):
+    """解装舰船，目前仅支持：全部解装+保留装备"""
+
     if not timer.identify_page('destroy_page'):
         timer.goto_game_page('destroy_page')
+    timer.set_page('destroy_page')
 
-    timer.wait_image(IMG.symbol_image[5], after_get_delay=.33)
-    timer.Android.click(301, 25)  # 这里动态延迟，点解装
-    timer.wait_image(IMG.symbol_image[6], after_get_delay=.33)
-    timer.Android.click(90, 206)  # 点添加
-    timer.wait_image(IMG.symbol_image[7], after_get_delay=.33)
-    # TODO：有bug，先注释 # 进去
-    # timer.Android.click(877, 378, delay=1)
-
-    # timer.Android.click(544, 105, delay=0.33)
-    # timer.Android.click(619, 105, delay=0.33)
-    # timer.Android.click(624, 152, delay=0.33)
-    # timer.Android.click(537, 204, delay=0.33)
-    # timer.Android.click(851, 459, delay=0.33)
-    # 筛出第一波
-
-    for i in range(1, 8):
-        timer.Android.click(i * 100, 166, delay=0.33)
-        timer.Android.click(i * 100, 366, delay=0.33)
-    # 选中第一波
-
-    timer.Android.click(860, 480, delay=1)
-
-    if (timer.image_exist(IMG.game_ui[8])):
-        timer.Android.click(807, 346)
-    timer.Android.click(870, 480, delay=1)
-    timer.Android.click(364, 304, delay=0.66)  # TODO：需要容错，如果没有选中任何船咋办？
-    """# 清理第一波
-
-    # TODO：跟上面一样
-    # timer.Android.click(90, 206, delay=1)
-    # timer.wait_image(IMG.symbol_image[7], after_get_delay=.5)
-    # timer.Android.click(877, 378, delay=1)  # 点“类型”
-    # timer.Android.click(536, 62, delay=0.33)
-    # timer.Android.click(851, 459, delay=0.33)
-    # # 再进去并筛出第二波
-    # if(reserve == 1):
-    #     timer.Android.click(853, 270, delay=0.66)
-    #     timer.Android.click(579, 208, delay=0.66)
-    # # 是否解装小船
-    # for i in range(1, amount + 1):
-    #     timer.Android.click(i * 100, 166, delay=0.33)
-    # # 选中第二波
-
-    # timer.Android.click(860, 480, delay=0.66)
-    # timer.Android.click(870, 480, delay=1)
-    # if(timer.image_exist(IMG.game_ui[8])):
-    #     click(807, 346)"""
+    timer.Android.click(90, 206, delay=1.5)  # 点添加
+    timer.Android.relative_click(0.91-0.5, 0.3-0.5, delay=1.5)  # 快速选择
+    timer.Android.relative_click(0.915-0.5, 0.906-0.5, delay=1.5)  # 确定
+    timer.Android.relative_click(0.837-0.5, 0.646-0.5, delay=1.5)  # 卸下装备
+    timer.Android.relative_click(0.9-0.5, 0.9-0.5, delay=1.5)  # 解装
+    timer.Android.relative_click(0.38-0.5, 0.567-0.5, delay=1.5)  # 四星确认
 
 
-#@logit(level=INFO2)
+# @logit(level=INFO2)
 def verify_team(timer: Timer):
     """检验目前是哪一个队伍(1~4)
     含网络状况处理
@@ -146,7 +107,7 @@ def verify_team(timer: Timer):
     raise ImageNotFoundErr()
 
 
-#@logit(level=INFO2)
+# @logit(level=INFO2)
 def MoveTeam(timer: Timer, target, try_times=0):
     """切换队伍
     Args:
@@ -172,7 +133,7 @@ def MoveTeam(timer: Timer, target, try_times=0):
         MoveTeam(timer, target, try_times + 1)
 
 
-#@logit(level=INFO3)
+# @logit(level=INFO3)
 def SetSupport(timer: Timer, target, try_times=0):
     """启用战役支援
 
@@ -199,7 +160,7 @@ def SetSupport(timer: Timer, target, try_times=0):
             raise ValueError("can't set right support")
 
 
-#@logit(level=INFO3)
+# @logit(level=INFO3)
 def QuickRepair(timer: Timer, repair_mode=2, *args, **kwargs):
     """战斗界面的快速修理
 
@@ -241,7 +202,7 @@ def QuickRepair(timer: Timer, repair_mode=2, *args, **kwargs):
                 timer.Android.click(BLOOD_BAR_POSITION[0][i][0], BLOOD_BAR_POSITION[0][i][1], delay=1.5)
 
 
-#@logit(level=INFO3)
+# @logit(level=INFO3)
 def GainBounds(timer: Timer):
     """检查任务情况,如果可以领取奖励则领取
 
@@ -263,7 +224,7 @@ def GainBounds(timer: Timer):
     #timer.Android.click(774, 502)
 
 
-#@logit(level=INFO2)
+# @logit(level=INFO2)
 def RepairByBath(timer: Timer):
     """使用浴室修理修理时间最长的单位
 
@@ -279,7 +240,7 @@ def RepairByBath(timer: Timer):
             timer.set_page()
 
 
-#@logit(level=INFO2)
+# @logit(level=INFO2)
 def SetAutoSupply(timer: Timer, type=1):
     timer.update_screen()
     NowType = int(timer.check_pixel((48, 508), (224, 135, 35)))
@@ -287,7 +248,7 @@ def SetAutoSupply(timer: Timer, type=1):
         timer.Android.click(44, 503, delay=0.33)
 
 
-#@logit(level=INFO2)
+# @logit(level=INFO2)
 def Supply(timer: Timer, ship_ids=[1, 2, 3, 4, 5, 6], try_times=0):
     """补给指定舰船
 
@@ -317,7 +278,7 @@ def Supply(timer: Timer, ship_ids=[1, 2, 3, 4, 5, 6], try_times=0):
         Supply(timer, ship_ids, try_times + 1)
 
 
-#@logit(level=INFO2)
+# @logit(level=INFO2)
 def ChangeShip(timer: Timer, fleet_id, ship_id=None, name=None, pre=None, detect_ship_stats=True):
     """切换舰船(不支持第一舰队)
 
@@ -359,7 +320,7 @@ def ChangeShip(timer: Timer, fleet_id, ship_id=None, name=None, pre=None, detect
     timer.wait_pages('fight_prepare_page', gap=0)
 
 
-#@logit(level=INFO3)
+# @logit(level=INFO3)
 def ChangeShips(timer: Timer, fleet_id, ship_names):
     """更换编队舰船
 

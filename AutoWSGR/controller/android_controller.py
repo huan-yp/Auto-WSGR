@@ -3,7 +3,7 @@ import time
 
 from airtest.core.api import shell, start_app, text
 from AutoWSGR.constants.other_constants import INFO1
-from AutoWSGR.utils.api_image import convert_position
+from AutoWSGR.utils.api_image import convert_position, relative_to_absolute
 # from AutoWSGR.utils.logger import logit
 
 
@@ -11,7 +11,7 @@ class AndroidController:
     def __init__(self, config, logger) -> None:
         self.config = config
         self.logger = logger
-        
+
         self.resolution = config.resolution
 
     # @logit()
@@ -24,8 +24,8 @@ class AndroidController:
 
     def start_app(self, package_name):
         start_app(package_name)
-    
-    #@logit()
+
+    # @logit()
     def is_game_running(self):
         apps = self.ShellCmd("ps")
         return "zhanjian2" in apps
@@ -33,7 +33,7 @@ class AndroidController:
     def text(self, t):
         text(t)
 
-    #@logit(level=INFO1)
+    # @logit(level=INFO1)
     def click(self, x, y, times=1, delay=0.5, enable_subprocess=False):
         """点击模拟器相对坐标 (x,y).
         Args:
@@ -50,7 +50,7 @@ class AndroidController:
         """
         if self.config.SHOW_ANDROID_INPUT:
             self.logger.debug("click:", time.time(), x, y)
-            
+
         if (times < 1):
             raise ValueError("invalid arg 'times' " + str(times))
         if (enable_subprocess and times != 1):
@@ -70,7 +70,28 @@ class AndroidController:
             self.ShellCmd(f"input tap {str(x)} {str(y)}")
             time.sleep(delay * self.config.DELAY)
 
-    #@logit(level=INFO1)
+    def relative_click(self, x, y, times=1, delay=0.5, enable_subprocess=False):
+        x, y = relative_to_absolute((x, y), self.resolution)
+
+        if self.config.SHOW_ANDROID_INPUT:
+            self.logger.debug("click:", time.time(), x, y)
+
+        if (times < 1):
+            raise ValueError("invalid arg 'times' " + str(times))
+        if (delay < 0):
+            raise ValueError("arg 'delay' should be positive or 0")
+        if (enable_subprocess and times != 1):
+            raise ValueError("subprocess enabled but arg 'times' is not 1 but " + str(times))
+        if enable_subprocess:
+            p = th.Thread(target=lambda: self.ShellCmd(f"input tap {str(x)} {str(y)}"))
+            p.start()
+            return p
+
+        for _ in range(times):
+            self.ShellCmd(f"input tap {str(x)} {str(y)}")
+            time.sleep(delay * self.config.DELAY)
+
+    # @logit(level=INFO1)
     def swipe(self, x1, y1, x2, y2, duration=0.5, delay=0.5, *args, **kwargs):
         """匀速滑动模拟器相对坐标 (x1,y1) 到 (x2,y2).
         Args:
@@ -98,7 +119,7 @@ class AndroidController:
 
         time.sleep(delay)
 
-    #@logit(level=INFO1)
+    # @logit(level=INFO1)
     def long_tap(self, x, y, duration=1, delay=0.5, *args, **kwargs):
         """长按相对坐标 (x,y)
         Args:

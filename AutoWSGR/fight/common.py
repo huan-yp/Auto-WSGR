@@ -283,7 +283,7 @@ class FightPlan(ABC):
         if ret == "success":
             pass
         elif ret == "dock is full":
-            return ret  # TODO：加入分解逻辑
+            return ret
         elif ret == "fight end":
             self.timer.set_page(self.Info.end_page)
             return ret
