@@ -4,18 +4,15 @@ from abc import ABC, abstractmethod
 
 from AutoWSGR.constants.custom_exceptions import ImageNotFoundErr, NetworkErr
 from AutoWSGR.constants.image_templates import IMG
-from AutoWSGR.constants.other_constants import (ALL_SHIP_TYPES, INFO1, INFO2,
-                                                SAP)
+from AutoWSGR.constants.other_constants import ALL_SHIP_TYPES, SAP
 from AutoWSGR.constants.positions import BLOOD_BAR_POSITION
 from AutoWSGR.controller.run_timer import Timer
-from AutoWSGR.game.game_operation import get_ship, Expedition
+from AutoWSGR.game.game_operation import Expedition, get_ship
 from AutoWSGR.utils.io import recursive_dict_update, yaml_to_dict
-# from AutoWSGR.utils.logger import logit
 from AutoWSGR.utils.math_functions import get_nearest
 from AutoWSGR.utils.operator import remove_0_value_from_dict
 
 
-#@logit(level=INFO2)
 def start_march(timer: Timer, position=(900, 500)):
     timer.Android.click(*position, 1, delay=0)
     start_time = time.time()
@@ -62,12 +59,11 @@ class FightResult():
         self.mvp = 0
         self.experiences = [None, 0, 0, 0, 0, 0, 0]
 
-    #@logit(level=INFO1)
     def detect_result(self):
         mvp_pos = self.timer.get_image_position(IMG.fight_image[14])
         self.mvp = get_nearest((mvp_pos[0], mvp_pos[1] + 20), BLOOD_BAR_POSITION[1])
-        self.result = self.timer.wait_images(IMG.fight_result_image, timeout=5)
-        if (self.timer.image_exist(IMG.fight_result_image['SS'], need_screen_shot=False)):
+        self.result = self.timer.wait_images(IMG.fight_result, timeout=5)
+        if (self.timer.image_exist(IMG.fight_result['SS'], need_screen_shot=False)):
             self.result = 'SS'
         if self.result is None:
             self.timer.log_screen()
@@ -354,7 +350,6 @@ class FightPlan(ABC):
         pass
 
     # =============== 战斗中通用的操作 ===============
-    #@logit(level=INFO2)
     def SL(self):
         self.timer.restart()
         self.timer.go_main_page()
