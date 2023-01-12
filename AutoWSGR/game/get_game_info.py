@@ -113,7 +113,6 @@ def GetEnemyCondition(timer: Timer, type='exercise', *args, **kwargs):
     for i, x in enumerate(res):
         timer.enemy_ship_type[i]=x
         timer.enemy_type_count[x] += 1
-        timer.enemy_ship_type[i]=x
         if (x != NO):
             timer.enemy_type_count["ALL"] += 1
 

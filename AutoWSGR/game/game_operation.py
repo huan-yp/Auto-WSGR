@@ -53,6 +53,7 @@ def get_ship(timer: Timer, max_times=1):
         timer.Android.click(900, 500, delay=.25)
         timeout = 2
         times += 1
+    timer.ConfirmOperation() # TODO: 检查是否高效
 
 
 def DestroyShip(timer: Timer):

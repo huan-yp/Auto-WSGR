@@ -96,17 +96,10 @@ class NormalFightInfo(FightInfo):
             if pos:
                 self.timer.ConfirmOperation(delay=.25, must_confirm=1, confidence=.8)
 
-        # 1. proceed: 资源点  2. get_ship: 锁定新船
-        # if self.state in ["proceed", "get_ship"]: # TODO: 提高proceed时confirm的速度，否则导致上面舰船位置匹配失败
-        # if self.state in ["get_ship"]:
-        #     print(time.time())
-        #     self.timer.ConfirmOperation(delay=0)
-
     def _after_match(self):
         # 在某些State下可以记录额外信息
         if self.state == "spot_enemy_success":
             GetEnemyCondition(self.timer, 'fight')
-
         elif self.state == "result":
             DetectShipStats(self.timer, 'sumup')
             self.fight_result.detect_result()
@@ -293,11 +286,11 @@ class NormalFightPlan(FightPlan):
             return 'fight end'
 
         # 进行通用NodeLevel决策
-
         action, fight_stage = self.nodes[self.Info.node].make_decision(state, self.Info.last_state,
                                                                        self.Info.last_action)
         self.Info.last_action = action
         self.fight_recorder.append(StageRecorder(self.Info, self.timer))
+        
         return fight_stage
 
     # ======================== Functions ========================
