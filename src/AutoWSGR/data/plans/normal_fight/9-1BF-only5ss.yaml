@@ -13,8 +13,7 @@ repair_mode: [2, 2, 2, 2, 2, 1]   #根据情况更改，带轻母时，最好将
 node_args:
   B:
     enemy_rules:
-      - [DD >= 1, retreat]
-      - [CL >= 1, retreat]
+      - [SS != 5, retreat]
     SL_when_spot_enemy_fails: True
     formation: 5
     night: False
@@ -22,7 +21,7 @@ node_args:
     proceed_stop: [2, 2, 2, 2, 2, 2]
   F:
     enemy_rules:
-      - [SS >= 6, retreat]
+      - [SAP != 1, retreat]
     formation: 5
     night: True
     proceed: False
