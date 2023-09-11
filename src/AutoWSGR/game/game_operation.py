@@ -143,6 +143,7 @@ def SetSupport(timer: Timer, target, try_times=0):
         timer.Android.click(628, 82, delay=1)
         timer.Android.click(760, 273, delay=1)
         timer.Android.click(480, 270, delay=1)
+        timer.logger.info("已开启战役支援")
 
     if timer.is_bad_network(0) or check_support_stats(timer) != target:
         if timer.process_bad_network("set_support"):
