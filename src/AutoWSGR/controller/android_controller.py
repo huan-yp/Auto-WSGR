@@ -85,7 +85,8 @@ class AndroidController:
             )
         if delay < 0:
             raise ValueError("arg 'delay' should be positive or 0")
-        original_x, original_y = x, y  # 保存原始坐标用来输出日志
+        original_x, original_y = x, y
+        # 对x，y进行缩放
         x, y = convert_position(x, y, self.resolution)
         if enable_subprocess == 1:
             p = th.Thread(target=lambda: self.ShellCmd(f"input tap {str(x)} {str(y)}"))
@@ -99,7 +100,6 @@ class AndroidController:
 
     def relative_click(self, x, y, times=1, delay=0.5, enable_subprocess=False):
         x, y = relative_to_absolute((x, y), self.resolution)
-
 
         if times < 1:
             raise ValueError("invalid arg 'times' " + str(times))
