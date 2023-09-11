@@ -136,13 +136,12 @@ def SetSupport(timer: Timer, target, try_times=0):
     """
     target = bool(target)
     timer.goto_game_page("fight_prepare_page")
-    # if(bool(timer.check_pixel((623, 75), )) == ):
-    #
-    # 支援次数已用尽
+
     if check_support_stats(timer) != target:
         timer.Android.click(628, 82, delay=1)
         timer.Android.click(760, 273, delay=1)
         timer.Android.click(480, 270, delay=1)
+        timer.logger.info("成功开启战役支援")
 
     if timer.is_bad_network(0) or check_support_stats(timer) != target:
         if timer.process_bad_network("set_support"):
