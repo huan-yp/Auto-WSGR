@@ -10,8 +10,8 @@ from AutoWSGR.game.game_operation import (
     SetSupport,
     get_rewards,
 )
-from AutoWSGR.scripts.main import start_script
 from AutoWSGR.ocr.digit import get_loot_and_ship
+from AutoWSGR.scripts.main import start_script
 
 
 class DailyOperation:
@@ -20,8 +20,6 @@ class DailyOperation:
 
         self.config = SN(**self.timer.config.daily_automation)
         self.config.DEBUG = False
-        self.timer.got_ship_num = 0
-
 
         if self.config.auto_expedition:
             self.expedition_plan = Expedition(self.timer)
@@ -56,8 +54,8 @@ class DailyOperation:
         # 自动开启支援
         if self.config.auto_set_support:
             SetSupport(self.timer, True)
-        
-        get_loot_and_ship(self.timer) #获取胖次掉落和船只掉落数据
+
+        get_loot_and_ship(self.timer)  # 获取胖次掉落和船只掉落数据
 
         # 自动出征
         if self.config.auto_normal_fight:
@@ -103,12 +101,12 @@ class DailyOperation:
     def _bath_repair(self):
         if self.config.auto_bath_repair:
             RepairByBath(self.timer)
+
     def _ship_max(self):
         if self.config.stop_maxship:
-            return True
-        else:
             if self.timer.got_ship_num < 500:
                 return True
-            else :
+            else:
                 return False
-        
+        else:
+            return True
