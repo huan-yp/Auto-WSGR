@@ -49,9 +49,27 @@ class WindowsController:
         return False
 
     # ======================== 模拟器 ========================
-    def ldconsole(self, command, command_arg=""):
+    def ldconsole(self, command, command_arg="", global_command=False):
+        """
+        使用雷电命令行控制模拟器。
+
+        :param command: 要执行的ldconsole命令。
+        :type command: str
+
+        :param command_arg: 命令的附加参数（可选）。
+        :type command_arg: str, 可选
+
+        :param global_command: 指示命令是否是全局的（不特定于模拟器实例）。
+        :type global_command: bool, 可选
+
+        :return: 雷电命令行执行的输出。
+        :rtype: str
+        """
         console_dir = os.path.join(os.path.dirname(self.start_cmd), "ldconsole.exe")
-        ret = os.popen(console_dir + " " + command + " --index " + str(self.emulator_index) + " " + command_arg)
+        if not global_command:
+            ret = os.popen(console_dir + " " + command + " --index " + str(self.emulator_index) + " " + command_arg)
+        else:
+            ret = os.popen(console_dir + " " + command_arg)
         return ret.read()
 
     # @try_for_times()
