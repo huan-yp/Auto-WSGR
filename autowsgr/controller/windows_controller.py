@@ -104,7 +104,8 @@ class WindowsController:
 
     def start_android(self):
         try:
-            os.popen(self.start_cmd)
+            self.ldconsole("launch")
+            self.logger.info("Emulator launched")
             start_time = time.time()
             while not self.is_android_online():
                 time.sleep(1)
