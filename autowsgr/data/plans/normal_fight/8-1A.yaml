@@ -13,7 +13,7 @@ node_args:
   A:
     # 索敌成功阶段
     enemy_rules:
-    - [SS != 5, retreat]
+    - [CA != 0, retreat]
     # 阵型选择阶段
     formation: 5 # 正常情况阵型选择，1-5
     # 夜战选择阶段
