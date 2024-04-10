@@ -9,7 +9,7 @@
 chapter: 8
 map: 5
 selected_nodes: [A, I]
-repair_mode: [1, 2, 1, 2, 2, 2] #单独对每个位置设置维修策略
+repair_mode: [2, 2, 2, 2, 1, 2] #单独对每个位置设置维修策略
 
 # NodeLevel
 node_args:

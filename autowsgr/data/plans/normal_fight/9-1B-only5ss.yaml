@@ -7,11 +7,12 @@
 chapter: 9
 map: 1
 selected_nodes: [B]
-repair_mode: [2, 2, 2, 2, 2, 1]   #根据情况更改，带轻母时，最好将轻母设置为中破修，我6号位是轻母，所以将6号位的维修策略设置为 1
+repair_mode: [1, 1, 1, 1, 1, 1]   #根据情况更改，带轻母时，最好将轻母设置为中破修，我6号位是轻母，所以将6号位的维修策略设置为 1
 # NodeLevel
 node_args:
   B:
     enemy_rules:
+      # - [DD >= 2, retreat]
       - [SS != 5, retreat]
     SL_when_spot_enemy_fails: True
     formation: 5
