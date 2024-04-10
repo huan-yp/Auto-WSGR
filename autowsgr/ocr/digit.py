@@ -51,9 +51,9 @@ def get_resources(timer: Timer):
         image_crop = crop_image(image, *POS["main_page"]["resources"][key], resolution=timer.config.resolution)
         raw_str_list = recognize_number(image_crop, "KM.")
         try:
-            if raw_str_list[0][2] < 0.99:
-                timer.logger.error(f"识别失败：{key},{raw_str_list[0][1]},confidence:{raw_str_list[0][2]}")
-                continue
+            # if raw_str_list[0][2] < 0.99:
+            #     timer.logger.error(f"识别失败：{key},{raw_str_list[0][1]},confidence:{raw_str_list[0][2]}")
+            #     continue
             raw_str = raw_str_list[0][1]
             if raw_str[-1] == "K":
                 num = raw_str[:-1]
@@ -84,9 +84,9 @@ def get_loot_and_ship(timer: Timer):
         image_crop = crop_image(image, *POS["map_page"][key], resolution=timer.config.resolution)
         raw_str_list = recognize_number(image_crop, "/")
         try:
-            if raw_str_list[0][2] < 0.99:
-                timer.logger.error(f"识别失败：{key},{raw_str_list[0][1]},confidence:{raw_str_list[0][2]}")
-                continue
+            # if raw_str_list[0][2] < 0.99:
+            #     timer.logger.error(f"识别失败：{key},{raw_str_list[0][1]},confidence:{raw_str_list[0][2]}")
+            #     continue
             raw_str = raw_str_list[0][1]
             ret[key] = eval(raw_str.split("/")[0])  # 当前值
             ret[key + "_max"] = eval(raw_str.split("/")[1])  # 最大值
