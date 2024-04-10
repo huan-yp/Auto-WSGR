@@ -50,9 +50,32 @@ class Expedition:
 def get_ship(timer: Timer, max_times=1):
     """获取掉落舰船"""
     timer.got_ship_num += 1
+
+    ocr = got_ship_ocr(
+        crop_image(timer.screen, pos1=[0.015625, -0.1027], pos2=[0.49, -0.49], resolution=timer.config.resolution)
+    )  # 识别掉落数据，后续补充相关内容
+    timer.got_ship_name = ocr["name"]
+    timer.ship_type = ocr["type"]
+    # timer.ship_star = result["star"]  # 星级识别暂时有点问题
+    timer.logger.info(f"已获得舰船数量：{timer.got_ship_num}, 舰船名称：{timer.got_ship_name}, 舰种：{timer.ship_type}")
+
     timer.wait_image(IMG.symbol_image[8])
     while timer.wait_image(IMG.symbol_image[8], timeout=0.5):
         timer.Android.click(915, 515, delay=0.25, times=1)
+
+
+def got_ship_ocr(img_crop):
+    """
+    识别获得舰船的名字，返回识别结果,
+    """
+    from autowsgr.ocr.ship_name import recognize
+
+    raw = recognize(img_crop, None)
+    try:
+        result = {"name": raw[0][1], "type": raw[1][1], "star": 0}  # 星级识别暂时有点问题
+    except:
+        result = {"name": "识别失败", "type": "识别失败", "star": 0}
+    return result
 
 
 def match_night(timer: Timer, is_night):
