@@ -46,11 +46,6 @@ class DailyOperation:
 
         self.start_time = self.last_time = time.time()
 
-        from autowsgr.ocr.ship_name import load_ch_reader, load_en_reader
-
-        load_ch_reader()
-        load_en_reader()
-
     def run(self):
         # 自动战役，直到超过次数
         if self.config.auto_battle:

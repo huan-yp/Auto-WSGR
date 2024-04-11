@@ -68,8 +68,7 @@ def get_resources(timer: Timer):
             ret[key] = eval(num) * unit
         except:
             # 容错处理，如果监测出来不是数字则出错了
-            timer.logger.error(f"读取资源失败：{raw_str_list}")
-            timer.logger.error(f"读取资源失败：{ret}")
+            timer.logger.error(f"读取{key}资源失败：{raw_str_list}")
     timer.logger.info(ret)
     return ret
 
@@ -91,10 +90,7 @@ def get_loot_and_ship(timer: Timer):
             ret[key] = eval(raw_str.split("/")[0])  # 当前值
             ret[key + "_max"] = eval(raw_str.split("/")[1])  # 最大值
         except:
-            if key == "loot":
-                timer.logger.error("读今日战利品失败！")
-            else:
-                timer.logger.error("读今日捞船数量失败！")
+            timer.logger.error(f"读取{key}数量失败：{raw_str_list}")
     try:
         timer.got_ship_num = ret.get("ship")
     except:
