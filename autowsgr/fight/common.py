@@ -9,9 +9,9 @@ from autowsgr.constants.other_constants import ALL_SHIP_TYPES, SAP
 from autowsgr.constants.positions import BLOOD_BAR_POSITION
 from autowsgr.constants.ui import Node
 from autowsgr.controller.run_timer import Timer
+from autowsgr.game.expedition import Expedition
 from autowsgr.game.game_operation import (
     DestroyShip,
-    Expedition,
     click_result,
     detect_ship_stats,
     get_ship,

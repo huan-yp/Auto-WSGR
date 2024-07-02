@@ -3,57 +3,31 @@ import time
 from autowsgr.constants.custom_exceptions import ImageNotFoundErr
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.positions import BLOOD_BAR_POSITION
-from autowsgr.controller.run_timer import Timer, try_to_get_expedition
+from autowsgr.controller.run_timer import Timer
 from autowsgr.game.get_game_info import check_support_stats, detect_ship_stats
-from autowsgr.ocr.ocr import recognize_get_ship
+from autowsgr.ocr.backend import OCRBackend
 from autowsgr.ocr.ship_name import recognize_ship
-from autowsgr.utils.api_image import absolute_to_relative
+from autowsgr.utils.api_image import absolute_to_relative, crop_image
 
 
-class Expedition:
-    def __init__(self, timer: Timer) -> None:
-        self.timer = timer
-        self.is_ready = False
-        self.last_check = time.time()
+def recognize_get_ship(backend: OCRBackend, screen, ship_names=None):
+    """识别获取 舰船/装备 页面斜着的文字，对原始图片进行旋转裁切"""
+    NAME_POSITION = [(0.754, 0.268), (0.983, 0.009), 25]
+    ship_name = backend.recognize(crop_image(screen, *NAME_POSITION), candidates=ship_names)
 
-    def update(self, force=False):
-        self.timer.update_screen()
-        if (isinstance(self.timer.now_page, str) and "unknow" in self.timer.now_page) or self.timer.now_page.name not in [
-            "expedition_page",
-            "map_page",
-            "battle_page",
-            "exercise_page",
-            "decisive_battle_entrance",
-        ]:
-            if force or time.time() - self.last_check > 1800:
-                self.timer.goto_game_page("main_page")
-            if self.timer.now_page.name == "main_page":
-                self.is_ready = self.timer.check_pixel((933, 454), bgr_color=(45, 89, 255))
-        else:
-            self.is_ready = self.timer.check_pixel((464, 11), bgr_color=(45, 89, 255))
+    TYPE_POSITION = [(0.804, 0.27), (0.881, 0.167), 25]
+    ship_type = backend.recognize(crop_image(screen, *TYPE_POSITION))
 
-    def run(self, force=False):
-        """检查远征, 如果有未收获远征, 则全部收获并用原队伍继续
-
-        Args:
-            force (bool): 是否强制检查
-        Returns:
-            bool: 是否进行了远征操作
-        """
-        self.update(force=force)
-        if self.is_ready:
-            self.timer.goto_game_page("expedition_page")
-            flag = try_to_get_expedition(self.timer)
-            self.timer.last_expedition_check_time = time.time()
+    return ship_name, ship_type
 
 
-def get_ship(timer: Timer, max_times=1):
+def get_ship(timer: Timer):
     """获取掉落舰船"""
-    # TODO: 返回舰船名称
     timer.got_ship_num += 1
     while timer.wait_image([IMG.symbol_image[8]] + [IMG.symbol_image[13]], timeout=1):
         try:
-            ship_name, ship_type = recognize_get_ship(timer.screen, timer.ship_names)
+            # TODO: support backend
+            ship_name, ship_type = recognize_get_ship(timer.ocr, timer.screen, timer.ship_names)
         except:
             ship_name, ship_type = "识别失败", "识别失败"
         timer.Android.click(915, 515, delay=0.25, times=1)

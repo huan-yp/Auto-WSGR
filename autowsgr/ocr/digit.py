@@ -4,9 +4,6 @@ import numpy as np
 
 from autowsgr.controller.run_timer import Timer
 from autowsgr.ocr.ship_name import recognize_number
-
-# import pytesseract
-# from AutoWSGR.ocr.ship_name import recognize_number
 from autowsgr.utils.api_image import crop_image
 from autowsgr.utils.io import yaml_to_dict
 

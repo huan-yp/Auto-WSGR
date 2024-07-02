@@ -11,6 +11,7 @@ from autowsgr.constants.data_roots import DATA_ROOT, IMG_ROOT
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.other_constants import ALL_PAGES, NO
 from autowsgr.constants.ui import WSGR_UI, Node
+from autowsgr.ocr.backend import EasyocrBackend
 from autowsgr.utils.io import yaml_to_dict
 from autowsgr.utils.operator import unzip_element
 
@@ -67,6 +68,9 @@ class Timer(Emulator):
             )
             ship_name_path = os.path.join(DATA_ROOT, "default_ship_names.yaml")
             self.ship_names = unzip_element(list(yaml_to_dict(ship_name_path).values()))
+
+        # TODO: 暂时只支持easyocr, 之后加入多后端切换
+        self.ocr = EasyocrBackend()
 
         self.init()
 

@@ -3,13 +3,12 @@ import datetime
 from autowsgr.constants.image_templates import IMG
 from autowsgr.controller.run_timer import Timer
 from autowsgr.game.game_operation import get_ship
-from autowsgr.ocr.ship_name import recognize, recognize_single_number
 from autowsgr.utils.api_image import (
     absolute_to_relative,
     crop_image,
     match_nearest_index,
 )
-from autowsgr.utils.time import get_eta
+from autowsgr.utils.time import get_eta, str2time
 
 # 开始建造，建造完成，快速建造 三个按钮的中心位置
 BUILD_POSITIONS = {
@@ -36,7 +35,7 @@ ETA_AREAS = {
 EQUIPMENT_DELTA = 0.02
 BUILD_POSITIONS["equipment"] = [(pos[0], pos[1] + EQUIPMENT_DELTA) for pos in BUILD_POSITIONS["ship"]]
 ETA_AREAS["equipment"] = [
-    ((area[0][0], area[0][1] + EQUIPMENT_DELTA), (area[1][0], area[1][1] + EQUIPMENT_DELTA)) for area in ETA_AREAS["ship"]
+    ((area[0][0], area + EQUIPMENT_DELTA), (area[1][0], area[1][1] + EQUIPMENT_DELTA)) for area in ETA_AREAS["ship"]
 ]
 # 四个资源的左下角位置
 RESOURCE_POSITIONS = [(0.2, 0.455), (0.59, 0.455), (0.2, 0.855), (0.59, 0.855)]
@@ -70,18 +69,18 @@ class BuildManager:
         # 截图检测
         screen = self.timer.get_screen(self.timer.Android.resolution, need_screen_shot=True)
         for build_slot in range(4):
-            ocr_result = recognize(
+            ocr_result = self.timer.ocr.recognize(
                 crop_image(
                     screen,
                     *ETA_AREAS[type][build_slot],
                 ),
             )
-            if not ocr_result or ocr_result[0][2] <= 0.5:
-                self.slot_eta[type][build_slot] = None
-            elif "完成" in ocr_result[0][1] or "开始" in ocr_result[0][1]:
+            if "完成" in ocr_result or "开始" in ocr_result:
                 self.slot_eta[type][build_slot] = -1
+            elif ":" in ocr_result:
+                self.slot_eta[type][build_slot] = get_eta(str2time(ocr_result))
             else:
-                self.slot_eta[type][build_slot] = get_eta(ocr_result[0][1])
+                self.slot_eta[type][build_slot] = None
 
     def get_timedelta(self, type="ship"):
         """获取建造队列的最小剩余时间
@@ -174,7 +173,7 @@ class BuildManager:
                     list: 拆分为3位数的资源
                 """
                 screen = self.timer.get_screen(self.timer.Android.resolution, need_screen_shot=True)
-                value = recognize_single_number(
+                value = self.timer.ocr.recognize_number(
                     crop_image(
                         screen,
                         *RESOURCE_AREAS[resource_id],
