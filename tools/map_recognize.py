@@ -9,8 +9,8 @@ import cv2
 import easyocr
 import keyboard
 
-from autowsgr.controller.run_timer import Timer
 from autowsgr.scripts.main import start_script
+from autowsgr.timer import Timer
 from autowsgr.utils.io import dict_to_yaml, listdir
 
 # en_reader = easyocr.Reader(['en'], gpu=False)

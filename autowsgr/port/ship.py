@@ -2,9 +2,9 @@ from typing import Iterable
 
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.positions import FLEET_POSITION
-from autowsgr.controller.run_timer import Timer
 from autowsgr.game.game_operation import MoveTeam
 from autowsgr.ocr.ship_name import recognize_ship
+from autowsgr.timer import Timer
 from autowsgr.utils.api_image import absolute_to_relative, relative_to_absolute
 from autowsgr.utils.operator import unorder_equal
 
@@ -63,7 +63,7 @@ class Fleet:
 
     def change_ship(self, position, ship_name, search_method="word"):
         self.ships[position] = ship_name
-        self.timer.Android.click(*FLEET_POSITION[position], delay=0)
+        self.timer.click(*FLEET_POSITION[position], delay=0)
         res = self.timer.wait_images(
             IMG.choose_ship_image[1:3] + [IMG.choose_ship_image[4]],
             after_get_delay=0.4,
@@ -73,22 +73,22 @@ class Fleet:
         if res == None:
             raise TimeoutError("选择舰船时点击超时")
         if ship_name is None:
-            self.timer.Android.click(83, 167, delay=0)
+            self.timer.click(83, 167, delay=0)
         else:
             if res == 1:
-                self.timer.Android.click(839, 113)
+                self.timer.click(839, 113)
             if search_method == "word":
-                self.timer.Android.click(700, 30, delay=0)
+                self.timer.click(700, 30, delay=0)
                 self.timer.wait_image(IMG.choose_ship_image[3], gap=0, after_get_delay=0.1)
-                self.timer.Android.text(ship_name)
-                self.timer.Android.click(1219 * 0.75, 667 * 0.75, delay=1)
+                self.timer.text(ship_name)
+                self.timer.click(1219 * 0.75, 667 * 0.75, delay=1)
 
             ships = recognize_ship(self.timer.get_screen()[:, :1048], self.timer.ship_names)
             for ship in ships:
                 if ship[0] == ship_name:
                     center = (ship[1][1][0] + 20, ship[1][1][1])
-                    rel_center = absolute_to_relative(center, self.timer.Android.resolution)
-                    self.timer.Android.relative_click(*rel_center)
+                    rel_center = absolute_to_relative(center, self.timer.resolution)
+                    self.timer.relative_click(*rel_center)
                     break
 
         self.timer.wait_pages("fight_prepare_page", gap=0)
@@ -132,7 +132,7 @@ class Fleet:
         assert len(self.ships) == 7
         p1 = FLEET_POSITION[p1]
         p2 = FLEET_POSITION[p2]
-        self.timer.Android.swipe(*p1, *p2)
+        self.timer.swipe(*p1, *p2)
 
     def legal(self, ships):
         ok = False

@@ -34,8 +34,8 @@ from autowsgr.constants.other_constants import (
     SS,
 )
 from autowsgr.constants.positions import BLOOD_BAR_POSITION, TYPE_SCAN_AREA
-from autowsgr.controller.run_timer import Timer
 from autowsgr.ocr.digit import get_resources
+from autowsgr.timer import Timer
 from autowsgr.utils.io import delete_file, read_file
 from autowsgr.utils.math_functions import CalcDis, CheckColor, matrix_to_str
 
@@ -235,13 +235,13 @@ def get_exercise_stats(timer: Timer, robot=None):
         None,
     ]
     if up == False and down == False:
-        timer.Android.swipe(800, 200, 800, 400)  # 上滑
+        timer.swipe(800, 200, 800, 400)  # 上滑
         timer.update_screen()
         up = True
     if up:
         for position in range(1, 5):
             result.append(math.sqrt(CalcDis(timer.get_pixel(770, position * 110 - 10), COLORS.CHALLENGE_BLUE)) <= 50)
-        timer.Android.swipe(800, 400, 800, 200)  # 下滑
+        timer.swipe(800, 400, 800, 200)  # 下滑
         timer.update_screen()
         result.append(math.sqrt(CalcDis(timer.get_pixel(770, 4 * 110 - 10), COLORS.CHALLENGE_BLUE)) <= 50)
         return result
@@ -251,14 +251,14 @@ def get_exercise_stats(timer: Timer, robot=None):
         if robot is not None:
             result.insert(1, robot)
         else:
-            timer.Android.swipe(800, 200, 800, 400)  # 上滑
+            timer.swipe(800, 200, 800, 400)  # 上滑
             timer.update_screen()
             result.insert(
                 1,
                 math.sqrt(CalcDis(timer.get_pixel(770, 4 * 110 - 10), COLORS.CHALLENGE_BLUE)) <= 50,
             )
 
-            timer.Android.swipe(800, 400, 800, 200)  # 下滑
+            timer.swipe(800, 400, 800, 200)  # 下滑
 
         return result
 

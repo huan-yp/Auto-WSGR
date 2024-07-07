@@ -1,8 +1,8 @@
 import datetime
 
 from autowsgr.constants.image_templates import IMG
-from autowsgr.controller.run_timer import Timer
 from autowsgr.game.game_operation import get_ship
+from autowsgr.timer import Timer
 from autowsgr.utils.api_image import (
     absolute_to_relative,
     crop_image,
@@ -67,9 +67,9 @@ class BuildManager:
         if type == "ship":
             self.timer.goto_game_page("build_page")
         # 截图检测
-        screen = self.timer.get_screen(self.timer.Android.resolution, need_screen_shot=True)
+        screen = self.timer.get_screen(self.timer.resolution, need_screen_shot=True)
         for build_slot in range(4):
-            ocr_result = self.timer.ocr.recognize(
+            ocr_result = self.timer.recognize(
                 crop_image(
                     screen,
                     *ETA_AREAS[type][build_slot],
@@ -138,7 +138,7 @@ class BuildManager:
                 return False
 
             ship_name, ship_type = get_ship(self.timer)
-            slot = match_nearest_index(absolute_to_relative(pos, self.timer.Android.resolution), BUILD_POSITIONS[type])
+            slot = match_nearest_index(absolute_to_relative(pos, self.timer.resolution), BUILD_POSITIONS[type])
             self.slot_eta[type][slot] = -1
 
         return ship_name
@@ -172,8 +172,8 @@ class BuildManager:
                 Returns:
                     list: 拆分为3位数的资源
                 """
-                screen = self.timer.get_screen(self.timer.Android.resolution, need_screen_shot=True)
-                value = self.timer.ocr.recognize_number(
+                screen = self.timer.get_screen(self.timer.resolution, need_screen_shot=True)
+                value = self.timer.recognize_number(
                     crop_image(
                         screen,
                         *RESOURCE_AREAS[resource_id],
@@ -188,7 +188,7 @@ class BuildManager:
                     while src[digit] != dst[digit]:
                         print(f"资源 {resource_id} 目前 {src} 目标 {dst}")
                         way = -1 if src[digit] < dst[digit] else 1
-                        self.timer.Android.relative_swipe(
+                        self.timer.relative_swipe(
                             *RESOURCE_OPERATE_POSITIONS[resource_id][digit],
                             RESOURCE_OPERATE_POSITIONS[resource_id][digit][0],
                             RESOURCE_OPERATE_POSITIONS[resource_id][digit][1] + way * RESOURCE_OPERATE_DELTA,
@@ -215,7 +215,7 @@ class BuildManager:
         # 选择资源，开始建造
         self.timer.wait_image(IMG.build_image.resource)
         choose_build_resources()
-        self.timer.Android.relative_click(0.89, 0.89)
+        self.timer.relative_click(0.89, 0.89)
         # 更新建造时间
         self.update_slot_eta(type)
 

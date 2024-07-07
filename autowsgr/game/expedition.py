@@ -1,6 +1,6 @@
 import time
 
-from autowsgr.controller.run_timer import Timer, try_to_get_expedition
+from autowsgr.timer.timer import Timer, try_to_get_expedition
 
 
 class Expedition:
