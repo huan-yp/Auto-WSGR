@@ -3,9 +3,8 @@ from typing import Iterable
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.positions import FLEET_POSITION
 from autowsgr.game.game_operation import MoveTeam
-from autowsgr.ocr.ship_name import recognize_ship
 from autowsgr.timer import Timer
-from autowsgr.utils.api_image import absolute_to_relative, relative_to_absolute
+from autowsgr.utils.api_image import absolute_to_relative
 from autowsgr.utils.operator import unorder_equal
 
 
@@ -56,10 +55,10 @@ class Fleet:
         assert self.timer.wait_image(IMG.identify_images["fight_prepare_page"]) != False
         if self.fleet_id is not None:
             MoveTeam(self.timer, self.fleet_id)
-        ships = recognize_ship(self.timer.get_screen()[433:459], self.timer.ship_names)
+        ships = self.timer.recognize_ship(self.timer.get_screen()[433:459], self.timer.ship_names)
         self.ships = [None] * 7
         for rk, ship in enumerate(ships):
-            self.ships[rk + 1] = ship[0]
+            self.ships[rk + 1] = ship[1]
 
     def change_ship(self, position, ship_name, search_method="word"):
         self.ships[position] = ship_name
@@ -76,18 +75,18 @@ class Fleet:
             self.timer.click(83, 167, delay=0)
         else:
             if res == 1:
-                self.timer.click(839, 113)
+                self.timer.relative_click(0.875, 0.246)
             if search_method == "word":
-                self.timer.click(700, 30, delay=0)
+                self.timer.relative_click(0.729, 0.056, delay=0)
                 self.timer.wait_image(IMG.choose_ship_image[3], gap=0, after_get_delay=0.1)
                 self.timer.text(ship_name)
                 self.timer.click(1219 * 0.75, 667 * 0.75, delay=1)
 
-            ships = recognize_ship(self.timer.get_screen()[:, :1048], self.timer.ship_names)
+            ships = self.timer.recognize_ship(self.timer.get_screen()[:, :1048], self.timer.ship_names)
+            print("页面中舰船：", ships)
             for ship in ships:
-                if ship[0] == ship_name:
-                    center = (ship[1][1][0] + 20, ship[1][1][1])
-                    rel_center = absolute_to_relative(center, self.timer.resolution)
+                if ship[1] == ship_name:
+                    rel_center = absolute_to_relative(ship[0], (1280, 720))
                     self.timer.relative_click(*rel_center)
                     break
 

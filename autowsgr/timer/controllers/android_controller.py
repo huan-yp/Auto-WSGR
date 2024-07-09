@@ -25,7 +25,7 @@ class AndroidController:
     用于提供底层的控制接口
     """
 
-    def __init__(self, config, logger, dev: Android) -> None:
+    def __init__(self, config, logger: Logger, dev: Android) -> None:
         self.config = config
         self.logger = logger
         self.dev = dev
@@ -92,6 +92,8 @@ class AndroidController:
             enable_subprocess == False:None
             enable_subprocess == True:A class threading.Thread refers to this click subprocess
         """
+        if self.config.SHOW_ANDROID_INPUT:
+            self.logger.debug(f"click ({x:.3f} {y:.3f})")
         x, y = relative_to_absolute((x, y), self.resolution)
 
         if times < 1:
@@ -106,8 +108,6 @@ class AndroidController:
             return p
 
         for _ in range(times):
-            if self.config.SHOW_ANDROID_INPUT:
-                self.logger.debug("click:", time.time(), x, y)
             self.shell(f"input tap {str(x)} {str(y)}")
             time.sleep(delay * self.config.DELAY)
 

@@ -448,7 +448,7 @@ class Timer(AndroidController, WindowsController, EasyocrBackend):
         if extra_check:
             self.wait_pages(names=[self.now_page.name])
 
-    def ConfirmOperation(self, must_confirm=0, delay=0.5, confidence=0.9, timeout=0):
+    def ConfirmOperation(self, must_confirm=False, delay=0.5, confidence=0.9, timeout=0):
         """等待并点击弹出在屏幕中央的各种确认按钮
 
         Args:
@@ -463,7 +463,7 @@ class Timer(AndroidController, WindowsController, EasyocrBackend):
         """
         pos = self.wait_images(IMG.confirm_image[1:], confidence=confidence, timeout=timeout)
         if pos is None:
-            if must_confirm == 1:
+            if must_confirm:
                 raise ImageNotFoundErr("no confirm image found")
             else:
                 return False

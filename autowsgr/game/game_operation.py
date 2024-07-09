@@ -5,30 +5,29 @@ from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.positions import BLOOD_BAR_POSITION
 from autowsgr.game.get_game_info import check_support_stats, detect_ship_stats
 from autowsgr.ocr.backend import OCRBackend
-from autowsgr.ocr.ship_name import recognize_ship
 from autowsgr.timer import Timer
 from autowsgr.utils.api_image import absolute_to_relative, crop_image
 
 
-def recognize_get_ship(backend: OCRBackend, screen, ship_names=None):
-    """识别获取 舰船/装备 页面斜着的文字，对原始图片进行旋转裁切"""
-    NAME_POSITION = [(0.754, 0.268), (0.983, 0.009), 25]
-    ship_name = backend.recognize(crop_image(screen, *NAME_POSITION), candidates=ship_names)
-
-    TYPE_POSITION = [(0.804, 0.27), (0.881, 0.167), 25]
-    ship_type = backend.recognize(crop_image(screen, *TYPE_POSITION))
-
-    return ship_name, ship_type
-
-
 def get_ship(timer: Timer):
     """获取掉落舰船"""
+
+    def recognize_get_ship(timer: Timer):
+        """识别获取 舰船/装备 页面斜着的文字，对原始图片进行旋转裁切"""
+        NAME_POSITION = [(0.754, 0.268), (0.983, 0.009), 25]
+        ship_name = timer.recognize(crop_image(timer.screen, *NAME_POSITION), candidates=timer.ship_names)[1]
+
+        TYPE_POSITION = [(0.804, 0.27), (0.881, 0.167), 25]
+        ship_type = timer.recognize(crop_image(timer.screen, *TYPE_POSITION))[1]
+
+        return ship_name, ship_type
+
     timer.got_ship_num += 1
     while timer.wait_image([IMG.symbol_image[8]] + [IMG.symbol_image[13]], timeout=1):
         try:
-            # TODO: support backend
-            ship_name, ship_type = recognize_get_ship(timer.ocr, timer.screen, timer.ship_names)
-        except:
+            ship_name, ship_type = recognize_get_ship(timer)
+        except Exception as e:
+            print(e)
             ship_name, ship_type = "识别失败", "识别失败"
         timer.click(915, 515, delay=0.25, times=1)
         timer.ConfirmOperation()
@@ -302,10 +301,10 @@ def ChangeShip(timer: Timer, fleet_id, ship_id=None, name=None, pre=None, ship_s
     # OCR识别舰船
     if not name in timer.ship_names:
         timer.ship_names.append(name)
-    ship_info = recognize_ship(timer.get_screen()[:, :1048], timer.ship_names)
+    ship_info = timer.recognize_ship(timer.get_screen()[:, :1048], timer.ship_names)
 
     # 查找识别结果中要选的舰船
-    found_ship = next((ship for ship in ship_info if ship[0] == name), None)
+    found_ship = next((ship for ship in ship_info if ship[1] == name), None)
     # 点击舰船
     if found_ship is None:
         timer.logger.error(f"Can't find ship {name},ocr result:{ship_info}")
@@ -316,7 +315,7 @@ def ChangeShip(timer: Timer, fleet_id, ship_id=None, name=None, pre=None, ship_s
         else:
             timer.click(183, 167, delay=0)
     else:
-        center = ((found_ship[1][0][0] + found_ship[1][1][0]) / 2, (found_ship[1][0][1] + found_ship[1][2][1]) / 2)
+        center = found_ship[0]
         rel_center = absolute_to_relative(center, timer.resolution)
         timer.relative_click(*rel_center)
 

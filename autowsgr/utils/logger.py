@@ -30,7 +30,7 @@ class Logger:
         self.console_logger.setLevel(self.log_level)
 
     def debug(self, *args):
-        self.console_logger.debug(str(args))
+        self.console_logger.debug(" ".join(args))
 
     def info(self, string):
         self.console_logger.info(string)

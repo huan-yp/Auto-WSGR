@@ -74,7 +74,7 @@ class BuildManager:
                     screen,
                     *ETA_AREAS[type][build_slot],
                 ),
-            )
+            )[1]
             if "完成" in ocr_result or "开始" in ocr_result:
                 self.slot_eta[type][build_slot] = -1
             elif ":" in ocr_result:
@@ -178,7 +178,7 @@ class BuildManager:
                         screen,
                         *RESOURCE_AREAS[resource_id],
                     )
-                )
+                )[1]
                 return value_to_digits(value)
 
             resource_digits = [value_to_digits(res) for res in resources]

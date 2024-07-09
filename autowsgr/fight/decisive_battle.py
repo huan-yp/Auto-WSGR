@@ -152,7 +152,7 @@ class Logic:
 
     def get_best_fleet(self):
         ships = self.stats.ships
-        self.logger.debug(f"ALL SHIPS: {ships}")
+        self.logger.debug(f"拥有舰船: {ships}")
         best_ships = [
             "",
         ]
@@ -174,7 +174,7 @@ class Logic:
 
         for _ in range(len(best_ships), 7):
             best_ships.append("")
-        self.logger.debug(f"BEST FLEET: {best_ships}")
+        self.logger.debug(f"当前最优：{best_ships}")
         return best_ships
 
     def _retreat(self):
@@ -326,17 +326,21 @@ class DecisiveBattle:
         CHOOSE_Y = 0.5
 
         screen = self.timer.get_screen()
-        # 应该能保证数字读取成功...
-        # self.stats.score = int(recognize_number(screen[25:55, 1162:1245], min_size=5, text_threshold=0.05, low_text=0.02)[0][1])
-        self.stats.score = self.timer.recognize_number(
-            crop_image(screen, *RESOURCE_AREA),
-        )
+        try:
+            self.stats.score = self.timer.recognize_number(
+                crop_image(screen, *RESOURCE_AREA),
+            )[1]
+        except:
+            # TODO: 提高OCR对单个数字的识别率
+            self.timer.logger.error("读取资源数值失败")
+            self.stats.score = 0
         self.timer.logger.debug(f"当前可用费用为：{self.stats.score}")
-        # costs = recognize_number(screen[550:585, 245:1031], "x")
-        costs = self.timer.recognize_number(
+        results = self.timer.recognize_number(
             crop_image(screen, *COST_AREA),
+            extra_chars="x",
             multiple=True,
         )
+        costs = [t[1] for t in results]
         _costs, ships, real_position = [], [], []
         for i, cost in enumerate(costs):
             try:
@@ -348,7 +352,7 @@ class DecisiveBattle:
             ships.append(
                 self.timer.recognize(
                     crop_image(screen, (SHIP_X[i][0], SHIP_Y[0]), (SHIP_X[i][1], SHIP_Y[1])), candidates=self.timer.ship_names
-                )
+                )[1]
             )
             _costs.append(cost)
             real_position.append(i)
@@ -359,7 +363,7 @@ class DecisiveBattle:
             return
         # ==================做出决策===================
         self.stats.selections = selections
-        self.timer.logger.debug(selections)
+        self.timer.logger.debug("选择舰船：", selections)
         choose = self.logic._choose_ship(must=(self.stats.map == 1 and self.stats.node == "A" and refreshed == True))
         if len(choose) == 0 and refreshed == False:
             self.timer.click(380, 500)  # 刷新备选舰船
@@ -384,11 +388,12 @@ class DecisiveBattle:
 
         self.timer.relative_click(*SKILL_POS)
         if type == 3:
-            ships = self.timer.recognize(
+            ship_results = self.timer.recognize(
                 crop_image(self.timer.get_screen(), *SHIP_AREA),
                 candidates=self.timer.ship_names,
                 multiple=True,
             )
+            ships = [ship[1] for ship in ship_results]
             self.timer.logger.info(f"使用技能获得: {ships}")
             for ship in ships:
                 self.stats.ships.add(ship)
@@ -402,8 +407,8 @@ class DecisiveBattle:
         CHAPTER_AREA = ((0.818, 0.867), (0.871, 0.826))
         text = self.timer.recognize(
             crop_image(self.timer.get_screen(), *CHAPTER_AREA),
-            allowlist="ExX-0123456789",
-        )
+            allowlist="Ex-0123456789",
+        )[1]
         return int(text[-1])
 
     def _move_chapter(self):
@@ -487,14 +492,13 @@ class DecisiveBattle:
     def _get_exp(self, retry=0):
         EXP_AREA = ((0.018, 0.854), (0.092, 0.822))
         try:
-            # src = recognize_number(self.timer.get_screen()[592:615, 48:118], "(/)")[0][1]
             self.stats.exp = 0
             self.stats.need = 20
             try:
                 src = self.timer.recognize(
                     crop_image(self.timer.get_screen(), *EXP_AREA),
                     allowlist="Lv.(/)0123456789",
-                )
+                )[1]
                 i1 = src.index("(")
                 i2 = src.index("/")
                 self.stats.exp = int(src[i1 + 1 : i2])
@@ -600,8 +604,8 @@ class DecisiveBattle:
         # Todo: 缺少磁盘报错
         self._reset()
         self._move_chapter()
-        self.timer.click(500, 500)
-        self.timer.ConfirmOperation()
+        self.timer.relative_click(0.5, 0.925)
+        self.timer.ConfirmOperation(must_confirm=True)
 
     def _reset(self):
         self.stats.reset()

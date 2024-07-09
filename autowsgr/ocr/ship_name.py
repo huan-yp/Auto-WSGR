@@ -1,11 +1,5 @@
-import functools
-import os
-import subprocess
-
-import cv2
 import easyocr
 
-from autowsgr.constants.data_roots import TUNNEL_ROOT
 from autowsgr.utils.operator import unzip_element
 
 en_reader = None
@@ -163,82 +157,6 @@ def recognize_number(image, ex_list="", min_size=7, text_threshold=0.55, low_tex
         low_text=low_text,
     )
     print(result)
-    return result
-
-
-def _recognize_ship(image, names, char_list=None, min_size=7, text_threshold=0.55, low_text=0.3):
-    """识别没有预处理过的图片中的舰船, 返回识别结果列表,
-    Returns:
-        list(result): 一个 result 为 [ship_name, left_top]
-    """
-    if char_list is None:
-        char_list = get_allow(names)
-    if ch_reader == None:
-        load_ch_reader()
-    result = recognize(
-        image,
-        char_list=char_list,
-        min_size=min_size,
-        text_threshold=text_threshold,
-        low_text=low_text,
-    )
-    result = [x for x in result if x[1] != ""]  # 去除空匹配
-    results = []
-    sorted(result, key=functools.cmp_to_key(compare_box))
-    for box in result:
-        res, lcs, name = "dsjfagiahsdifhaoisd", "", box[1]
-        name = replace(name)
-        for _name in names:
-            if any([(_name.find(char) != -1) for char in name]):
-                dis1 = edit_distance(_name, name)
-                dis2 = edit_distance(res, name)
-                if dis1 < dis2:
-                    res = _name
-        results.append((res, box[0]))
-    if len(results) == 0:
-        results.append(("Unknown", (0, 0)))
-    # print(results)
-    return results
-
-
-def recognize_ship(image, names, char_list=None, min_size=7, text_threshold=0.55, low_text=0.3):
-    """传入一张图片,返回舰船信息,包括名字和舰船型号
-
-    Args:
-        image (_type_): _description_
-        names (_type_): _description_
-        char_list (_type_, optional): _description_. Defaults to None.
-    """
-    if isinstance(image, str):
-        image_path = os.path.abspath(image)
-    else:
-        image_path = os.path.join(TUNNEL_ROOT, "OCR.PNG")
-        cv2.imwrite(image_path, image)
-    if char_list is None:
-        char_list = get_allow(names)
-    with open(os.path.join(TUNNEL_ROOT, "locator.in"), "w+") as f:
-        f.write(image_path)
-    locator_exe = os.path.join(TUNNEL_ROOT, "locator.exe")
-    subprocess.run([locator_exe, TUNNEL_ROOT])
-    if os.path.exists(os.path.join(TUNNEL_ROOT, "1.PNG")):
-        result = _recognize_ship(
-            os.path.join(TUNNEL_ROOT, "1.PNG"),
-            names,
-            char_list,
-            min_size=min_size,
-            text_threshold=text_threshold,
-            low_text=low_text,
-        )
-    else:
-        result = _recognize_ship(
-            "1.PNG",
-            names,
-            char_list,
-            min_size=min_size,
-            text_threshold=text_threshold,
-            low_text=low_text,
-        )
-    # print(result)
     return result
 
 
