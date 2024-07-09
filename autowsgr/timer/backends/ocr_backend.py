@@ -75,11 +75,15 @@ class OCRBackend:
         """识别数字"""
 
         def process_number(t: str):
+            # 今日胖次、掉落; 决战升级经验等
+            if "/" in t:
+                nums = t.split("/")
+                assert len(nums) == 2
+                return process_number(nums[0]), process_number(nums[1])
+
             # 决战，费用是f"x{cost}"格式
-            if t.startswith("x"):
-                t = t[1:]
-            # 去掉前导0
-            t = t.lstrip("0")
+            # 建造资源有前导0
+            t = t.lstrip("x0")
 
             # 资源可以是K/M结尾
             if t.endswith("K"):

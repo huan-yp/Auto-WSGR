@@ -1,7 +1,6 @@
 import math
 import os
 import subprocess
-import time
 
 import numpy as np
 from PIL import Image as PIM
@@ -34,9 +33,10 @@ from autowsgr.constants.other_constants import (
     SS,
 )
 from autowsgr.constants.positions import BLOOD_BAR_POSITION, TYPE_SCAN_AREA
-from autowsgr.ocr.digit import get_resources
+from autowsgr.game.game_operation import get_resources
 from autowsgr.timer import Timer
-from autowsgr.utils.io import delete_file, read_file
+from autowsgr.utils.api_image import crop_image
+from autowsgr.utils.io import delete_file, read_file, yaml_to_dict
 from autowsgr.utils.math_functions import CalcDis, CheckColor, matrix_to_str
 
 
@@ -87,6 +87,58 @@ class Resources:
             self.detect_resources(name)
 
         return self.resources.get(name)
+
+
+POS = yaml_to_dict(os.path.join(os.path.dirname(__file__), "relative_location.yaml"))
+
+
+def get_resources(timer: Timer):
+    """根据 timer 所处界面获取对应资源数据
+    部分 case 会没掉,请重写
+    """
+    timer.goto_game_page("main_page")
+    timer.update_screen()
+    image = timer.screen
+    ret = {}
+    for key in POS["main_page"]["resources"]:
+        image_crop = crop_image(image, *POS["main_page"]["resources"][key])
+        try:
+            ret[key] = timer.recognize_number(image_crop, "KM.")[1]
+        except:
+            # 容错处理，如果监测出来不是数字则出错了
+            timer.logger.error(f"读取{key}资源失败")
+    timer.logger.info(ret)
+    return ret
+
+
+def get_loot_and_ship(timer: Timer):
+    """获取掉落数据"""
+    timer.goto_game_page("map_page")
+    timer.update_screen()
+    image = timer.screen
+    ret = {}
+    for key in POS["map_page"]:
+        image_crop = crop_image(image, *POS["map_page"][key])
+        try:
+            ret[key], ret[key + "_max"] = timer.recognize_number(image_crop, "/")[1]
+        except:
+            timer.logger.error(f"读取{key}数量失败")
+    try:
+        timer.got_ship_num = ret.get("ship")
+    except:
+        timer.logger.error("赋值给got_ship_num失败")
+        timer.got_ship_num = 0
+
+    try:
+        timer.got_loot_num = ret.get("loot")
+        if timer.got_loot_num == None:
+            timer.got_loot_num = 0
+    except:
+        timer.logger.error("赋值给got_loot_num失败")
+        timer.got_loot_num = 0
+    timer.logger.info(f"已掉落胖次:{timer.got_loot_num}")
+    timer.logger.info(f"已掉落舰船:{timer.got_ship_num}")
+    return ret
 
 
 def get_enemy_condition(timer: Timer, type="exercise", *args, **kwargs):

@@ -44,7 +44,7 @@ RESOURCE_AREAS = [(pos, (pos[0] + 0.16, pos[1] - 0.1)) for pos in RESOURCE_POSIT
 # 操作资源的位置（第一位）
 RESOURCE_OPERATE_POSITIONS = [[(pos[0] + 0.022 + i * 0.057, pos[1] - 0.046) for i in range(3)] for pos in RESOURCE_POSITIONS]
 # 滑动的距离
-RESOURCE_OPERATE_DELTA = 0.06
+RESOURCE_OPERATE_DELTA = 0.09
 
 
 class BuildManager:
