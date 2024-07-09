@@ -35,7 +35,7 @@ ETA_AREAS = {
 EQUIPMENT_DELTA = 0.02
 BUILD_POSITIONS["equipment"] = [(pos[0], pos[1] + EQUIPMENT_DELTA) for pos in BUILD_POSITIONS["ship"]]
 ETA_AREAS["equipment"] = [
-    ((area[0][0], area + EQUIPMENT_DELTA), (area[1][0], area[1][1] + EQUIPMENT_DELTA)) for area in ETA_AREAS["ship"]
+    ((area[0][0], area[0][1] + EQUIPMENT_DELTA), (area[1][0], area[1][1] + EQUIPMENT_DELTA)) for area in ETA_AREAS["ship"]
 ]
 # 四个资源的左下角位置
 RESOURCE_POSITIONS = [(0.2, 0.455), (0.59, 0.455), (0.2, 0.855), (0.59, 0.855)]
@@ -70,17 +70,15 @@ class BuildManager:
         screen = self.timer.get_screen(self.timer.resolution, need_screen_shot=True)
         for build_slot in range(4):
             ocr_result = self.timer.recognize(
-                crop_image(
-                    screen,
-                    *ETA_AREAS[type][build_slot],
-                ),
-            )[1]
-            if "完成" in ocr_result or "开始" in ocr_result:
-                self.slot_eta[type][build_slot] = -1
-            elif ":" in ocr_result:
-                self.slot_eta[type][build_slot] = get_eta(str2time(ocr_result))
-            else:
+                crop_image(screen, *ETA_AREAS[type][build_slot]),
+                allow_nan=True,
+            )
+            if not ocr_result:
                 self.slot_eta[type][build_slot] = None
+            elif "完成" in ocr_result[1] or "开始" in ocr_result[1]:
+                self.slot_eta[type][build_slot] = -1
+            elif ":" in ocr_result[1]:
+                self.slot_eta[type][build_slot] = get_eta(str2time(ocr_result[1]))
 
     def get_timedelta(self, type="ship"):
         """获取建造队列的最小剩余时间
@@ -141,8 +139,6 @@ class BuildManager:
             slot = match_nearest_index(absolute_to_relative(pos, self.timer.resolution), BUILD_POSITIONS[type])
             self.slot_eta[type][slot] = -1
 
-        return ship_name
-
     def build(self, type="ship", resources=None, allow_fast_build=False):
         """建造操作
         Args:
@@ -172,12 +168,10 @@ class BuildManager:
                 Returns:
                     list: 拆分为3位数的资源
                 """
-                screen = self.timer.get_screen(self.timer.resolution, need_screen_shot=True)
+                screen = self.timer.get_screen()
                 value = self.timer.recognize_number(
-                    crop_image(
-                        screen,
-                        *RESOURCE_AREAS[resource_id],
-                    )
+                    crop_image(screen, *RESOURCE_AREAS[resource_id]),
+                    rgb_select=(255, 155, 81),
                 )[1]
                 return value_to_digits(value)
 

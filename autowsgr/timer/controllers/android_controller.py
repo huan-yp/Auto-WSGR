@@ -137,12 +137,11 @@ class AndroidController:
             raise ValueError("arg 'delay' should be positive or 0")
         x1, y1 = relative_to_absolute((x1, y1), self.resolution)
         x2, y2 = relative_to_absolute((x2, y2), self.resolution)
-        duration = int(duration * 1000)
-        input_str = f"input swipe {str(x1)} {str(y1)} {str(x2)} {str(y2)} {duration}"
+        input_str = f"input swipe {str(x1)} {str(y1)} {str(x2)} {str(y2)} {int(duration * 1000)}"
         if self.config.SHOW_ANDROID_INPUT:
             self.logger.debug(input_str)
         self.shell(input_str)
-        time.sleep(delay)
+        time.sleep(duration + delay)
 
     def swipe(self, x1, y1, x2, y2, duration=0.5, delay=0.5, *args, **kwargs):
         """匀速滑动模拟器相对坐标 (x1,y1) 到 (x2,y2).

@@ -4,7 +4,6 @@ from autowsgr.constants.custom_exceptions import ImageNotFoundErr
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.positions import BLOOD_BAR_POSITION
 from autowsgr.game.get_game_info import check_support_stats, detect_ship_stats
-from autowsgr.ocr.backend import OCRBackend
 from autowsgr.timer import Timer
 from autowsgr.utils.api_image import absolute_to_relative, crop_image
 
