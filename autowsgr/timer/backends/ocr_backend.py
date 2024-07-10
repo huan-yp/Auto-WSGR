@@ -13,6 +13,10 @@ from autowsgr.constants.data_roots import TUNNEL_ROOT
 class OCRBackend:
     WORD_REPLACE = None  # 记录中文ocr识别的错误用于替换。主要针对词表缺失的情况，会导致稳定的识别为另一个字
 
+    def __init__(self, config, logger):
+        self.config = config
+        self.logger = logger
+
     def read_text(self, img, allowlist: List[str] = None, sort: str = "left-to-right", **kwargs):
         """识别文字的具体实现，返回字符串格式识别结果"""
         raise NotImplementedError
@@ -60,7 +64,8 @@ class OCRBackend:
         img = pre_process_rgb(img, rgb_select)
         results = self.read_text(img, allowlist, **kwargs)
         results = [(t[0], post_process_text(t[1]), t[2]) for t in results]
-        print(f"修正OCR结果：{results}")
+        if self.config.SHOW_OCR_INFO:
+            self.logger.info(f"修正OCR结果：{results}")
 
         if allow_nan and not results:
             return None
@@ -97,7 +102,8 @@ class OCRBackend:
 
         results = self.recognize(img, allowlist="0123456789" + extra_chars, multiple=True, **kwargs)
         results = [(t[0], process_number(t[1]), t[2]) for t in results]
-        print(f"数字解析结果：{results}")
+        if self.config.SHOW_OCR_INFO:
+            self.logger.info(f"数字解析结果：{results}")
 
         if allow_nan and not results:
             return None
@@ -136,7 +142,8 @@ class EasyocrBackend(OCRBackend):
         "鲍鱼": "鲃鱼",
     }
 
-    def __init__(self) -> None:
+    def __init__(self, config, logger) -> None:
+        super().__init__(config, logger)
         self.reader = easyocr.Reader(["ch_sim", "en"])
 
     def read_text(
@@ -169,5 +176,6 @@ class EasyocrBackend(OCRBackend):
         else:
             raise ValueError(f"Invalid sort method: {sort}")
 
-        print(f"原始OCR结果: {results}")
+        if self.config.SHOW_OCR_INFO:
+            self.logger.info(f"原始OCR结果: {results}")
         return results

@@ -6,13 +6,8 @@ from autowsgr.fight.battle import BattlePlan
 from autowsgr.fight.exercise import NormalExercisePlan
 from autowsgr.fight.normal_fight import NormalFightPlan
 from autowsgr.game.expedition import Expedition
-from autowsgr.game.game_operation import (
-    RepairByBath,
-    SetSupport,
-    get_loot_and_ship,
-    get_resources,
-    get_rewards,
-)
+from autowsgr.game.game_operation import RepairByBath, SetSupport, get_rewards
+from autowsgr.game.get_game_info import get_loot_and_ship, get_resources
 from autowsgr.scripts.main import start_script
 
 

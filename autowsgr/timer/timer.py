@@ -51,7 +51,7 @@ class Timer(AndroidController, WindowsController, EasyocrBackend):
         AndroidController.__init__(self, config, logger, dev)
 
         # TODO: 暂时只支持easyocr, 之后加入多后端切换
-        EasyocrBackend.__init__(self)
+        EasyocrBackend.__init__(self, config, logger)
 
         if not self.config.PLAN_ROOT:
             self.logger.warning(f"No PLAN_ROOT specified, default value {os.path.join(DATA_ROOT, 'plans')} will be used")
