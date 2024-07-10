@@ -11,7 +11,7 @@ from autowsgr.constants.data_roots import DATA_ROOT, IMG_ROOT
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.other_constants import ALL_PAGES, NO
 from autowsgr.constants.ui import WSGR_UI, Node
-from autowsgr.timer.backends.ocr_backend import EasyocrBackend
+from autowsgr.timer.backends import EasyocrBackend
 from autowsgr.timer.controllers import AndroidController, WindowsController
 from autowsgr.utils.io import yaml_to_dict
 from autowsgr.utils.operator import unzip_element

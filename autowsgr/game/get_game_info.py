@@ -33,7 +33,6 @@ from autowsgr.constants.other_constants import (
     SS,
 )
 from autowsgr.constants.positions import BLOOD_BAR_POSITION, TYPE_SCAN_AREA
-from autowsgr.game.game_operation import get_resources
 from autowsgr.timer import Timer
 from autowsgr.utils.api_image import crop_image
 from autowsgr.utils.io import delete_file, read_file, yaml_to_dict
@@ -119,9 +118,10 @@ def get_loot_and_ship(timer: Timer):
     ret = {}
     for key in POS["map_page"]:
         image_crop = crop_image(image, *POS["map_page"][key])
-        try:
-            ret[key], ret[key + "_max"] = timer.recognize_number(image_crop, "/")[1]
-        except:
+        result = timer.recognize_number(image_crop, extra_chars="/", allow_nan=True)
+        if result:
+            ret[key], ret[key + "_max"] = result[1]
+        else:
             timer.logger.error(f"读取{key}数量失败")
     try:
         timer.got_ship_num = ret.get("ship")

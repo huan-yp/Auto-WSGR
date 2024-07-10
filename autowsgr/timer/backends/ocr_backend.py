@@ -71,7 +71,7 @@ class OCRBackend:
             assert len(results) == 1
             return results[0]
 
-    def recognize_number(self, img, extra_chars="", multiple=False, **kwargs):
+    def recognize_number(self, img, extra_chars="", multiple=False, allow_nan=False, **kwargs):
         """识别数字"""
 
         def process_number(t: str):
@@ -82,8 +82,10 @@ class OCRBackend:
                 return process_number(nums[0]), process_number(nums[1])
 
             # 决战，费用是f"x{cost}"格式
+            t = t.lstrip("x")
             # 建造资源有前导0
-            t = t.lstrip("x0")
+            if t != "0":
+                t = t.lstrip("0")
 
             # 资源可以是K/M结尾
             if t.endswith("K"):
@@ -97,10 +99,13 @@ class OCRBackend:
         results = [(t[0], process_number(t[1]), t[2]) for t in results]
         print(f"数字解析结果：{results}")
 
+        if allow_nan and not results:
+            return None
+
         if multiple:
             return results
         else:
-            assert len(results) == 1
+            assert len(results) == 1, f"OCR识别数字失败: {results}"
             return results[0]
 
     def recognize_ship(self, image, candidates, **kwargs):
