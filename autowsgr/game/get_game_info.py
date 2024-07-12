@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image as PIM
 
 from autowsgr.constants.colors import COLORS
-from autowsgr.constants.data_roots import TUNNEL_ROOT
+from autowsgr.constants.data_roots import OCR_ROOT, TUNNEL_ROOT
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.other_constants import (
     AADG,
@@ -88,7 +88,7 @@ class Resources:
         return self.resources.get(name)
 
 
-POS = yaml_to_dict(os.path.join(os.path.dirname(__file__), "relative_location.yaml"))
+POS = yaml_to_dict(os.path.join(OCR_ROOT, "relative_location.yaml"))
 
 
 def get_resources(timer: Timer):

@@ -4,9 +4,9 @@ from pathlib import Path
 from pprint import pprint
 from types import SimpleNamespace
 
+import cv2
 import numpy as np
 import yaml
-from cv2 import imwrite
 from PIL import Image as PIM
 
 
@@ -113,6 +113,12 @@ def delete_file(path):
         os.remove(path)
 
 
+def cv_imread(file_path):
+    """读取含中文路径的图片, 返回一个字节流对象"""
+    with open(file_path, "rb") as file:
+        return file.read()  # 读取整个文件的字节流
+
+
 def save_image(path, image, ignore_existed_image=False, *args, **kwargs):
     """未测试"""
     """保存一张图片到给定路径
@@ -129,7 +135,7 @@ def save_image(path, image, ignore_existed_image=False, *args, **kwargs):
     if isinstance(image, PIM.Image):
         image.save(os.path.abspath(path))
     if isinstance(image, np.ndarray):
-        imwrite(path, image)
+        cv2.imencode(".png", image)[1].tofile(path)
 
 
 def get_all_files(dir):

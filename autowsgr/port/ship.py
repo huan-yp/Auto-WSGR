@@ -1,11 +1,16 @@
+import os
 from typing import Iterable
 
+from autowsgr.constants.data_roots import OCR_ROOT
 from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.positions import FLEET_POSITION
 from autowsgr.game.game_operation import MoveTeam
 from autowsgr.timer import Timer
-from autowsgr.utils.api_image import absolute_to_relative
+from autowsgr.utils.api_image import absolute_to_relative, crop_image
+from autowsgr.utils.io import recursive_dict_update, yaml_to_dict
 from autowsgr.utils.operator import unorder_equal
+
+POS = yaml_to_dict(os.path.join(OCR_ROOT, "relative_location.yaml"))
 
 
 def count_ship(fleet):
@@ -59,6 +64,21 @@ class Fleet:
         self.ships = [None] * 7
         for rk, ship in enumerate(ships):
             self.ships[rk + 1] = ship[1]
+
+    def check_level(self, timer: Timer):
+        if timer.config.daily_automation["change_ship_level_max"]:
+            timer.update_screen()
+            for i in range(1, 7):
+                try:
+                    image_crop = crop_image(timer.screen, *POS["result_page"]["ship_level"][i])
+                    timer.ship_level[i] = timer.recognize_number(image_crop, ex_list="Lv.")[1]
+                except:
+                    timer.ship_level[i] = 0  # 识别失败则等级为0
+                    timer.logger.error(f"识别{i}号位置等级失败")
+            timer.logger.debug(f"当前编队舰船等级为：{timer.ship_level}")
+            return timer.ship_level
+        else:
+            pass
 
     def change_ship(self, position, ship_name, search_method="word"):
         self.ships[position] = ship_name

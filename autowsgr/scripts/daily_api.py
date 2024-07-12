@@ -76,6 +76,11 @@ class DailyOperation:
                 elif ret == literals.DOCK_FULL_FLAG:
                     break  # 不解装则结束出征
 
+                if self.config.quick_repair_limit:
+                    if self.timer.quick_repaired_cost >= int(self.config.quick_repair_limit):
+                        self.timer.logger.info(f"快修消耗达到上限:{self.config.quick_repair_limit}，结束出征")
+                        break
+
                 if time.time() - self.last_time >= 5 * 60:
                     self._expedition()
                     self._gain_bonus()

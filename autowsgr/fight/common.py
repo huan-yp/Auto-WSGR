@@ -17,6 +17,7 @@ from autowsgr.game.game_operation import (
     match_night,
 )
 from autowsgr.game.get_game_info import get_enemy_condition
+from autowsgr.port.ship import Fleet
 from autowsgr.timer import Timer
 from autowsgr.utils.io import recursive_dict_update, yaml_to_dict
 from autowsgr.utils.math_functions import get_nearest
@@ -70,6 +71,9 @@ class FightResultInfo:
             timer.log_screen(name="mvp_image")
             timer.logger.error(f"can't identify mvp, error: {e}")
         self.ship_stats = detect_ship_stats(timer, "sumup", ship_stats)
+        # TODO: 识别舰船等级
+        # Fleet.check_level(timer)
+
         self.result = timer.wait_images(IMG.fight_result, timeout=5)
         if timer.image_exist(IMG.fight_result["SS"], need_screen_shot=False):
             self.result = "SS"
@@ -356,7 +360,7 @@ class FightPlan(ABC):
         elif ret == literals.DOCK_FULL_FLAG:
             # 自动解装功能
             if self.config.dock_full_destroy:
-                self.timer.relative_click(0.38 - 0.5, 0.565 - 0.5)
+                self.timer.relative_click(0.38, 0.565)
                 DestroyShip(self.timer)
                 return self.run(False)
             else:

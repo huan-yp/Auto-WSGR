@@ -88,6 +88,8 @@ class OCRBackend:
 
             # 决战，费用是f"x{cost}"格式
             t = t.lstrip("x")
+            # 战后经验值 f"Lv.{exp}"格式
+            t = t.lstrip("Lv.")
             # 建造资源有前导0
             if t != "0":
                 t = t.lstrip("0")
