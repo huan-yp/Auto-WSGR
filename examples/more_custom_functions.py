@@ -4,7 +4,7 @@ import time
 import autowsgr.fight.normal_fight as nf
 import autowsgr.scripts.daily_api as da
 from autowsgr.game.build import BuildManager
-from autowsgr.game.game_operation import build, cook
+from autowsgr.game.game_operation import cook
 from autowsgr.scripts.main import start_script
 
 timer = start_script(f"{os.path.dirname(os.path.abspath(__file__))}/user_settings.yaml")
@@ -32,14 +32,14 @@ def day():
     equipment_resources = [10, 90, 90, 30]
     build_manager = BuildManager(timer)
 
-    while build_manager.has_empty_slot():
-        build_manager.build(resources=resources)
-        print(build_manager.slot_eta)
+    build_manager.build(resources=resources)
+    print(build_manager.slot_eta)
 
     for i in range(3):
         build_manager.build(type="equipment", resources=equipment_resources)
         print(build_manager.slot_eta)
-        time.sleep(build_manager.get_timedelta().total_seconds())
+        print(build_manager.get_timedelta(type="equipment").total_seconds())
+        time.sleep(build_manager.get_timedelta(type="equipment").total_seconds())
 
 
 week()

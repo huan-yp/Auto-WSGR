@@ -21,6 +21,8 @@ def get_ship(timer: Timer):
 
         return ship_name, ship_type
 
+    ship_name = None
+    ship_type = None
     timer.got_ship_num += 1
     while timer.wait_image([IMG.symbol_image[8]] + [IMG.symbol_image[13]], timeout=1):
         try:
@@ -357,7 +359,8 @@ def get_new_things(timer: Timer, lock=0):
     pass
 
 
-def cook(timer: Timer, position: int):
+# 是否强制点击
+def cook(timer: Timer, position: int, force_click=False):
     """食堂做菜
     Args:
         position (int): 第几个菜谱
@@ -369,6 +372,8 @@ def cook(timer: Timer, position: int):
     timer.click(*POSITION[position])
     try:
         timer.click_image(IMG.restaurant_image[1], timeout=7.5, must_click=True)
+        if timer.image_exist(IMG.restaurant_image[2]) and force_click:
+            timer.click_image(IMG.restaurant_image[2], must_click=True)
         timer.logger.info("做菜成功")
         return True
     except:

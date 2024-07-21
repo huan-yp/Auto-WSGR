@@ -452,7 +452,7 @@ class Timer(AndroidController, WindowsController, EasyocrBackend):
             if type is None:
                 return
 
-        pos = self.get_image_position(List[type], 0, 0.8)
+        pos = self.get_image_position(List[type], False, 0.8)
         self.click(pos[0], pos[1])
 
         NewList = List[1:] + [List[0]]
@@ -487,7 +487,7 @@ class Timer(AndroidController, WindowsController, EasyocrBackend):
                 raise ImageNotFoundErr("no confirm image found")
             else:
                 return False
-        res = self.get_image_position(IMG.confirm_image[pos + 1], confidence=confidence, need_screen_shot=0)
+        res = self.get_image_position(IMG.confirm_image[pos + 1], confidence=confidence, need_screen_shot=False)
         self.click(res[0], res[1], delay=delay)
         return True
 
