@@ -27,7 +27,7 @@ def week(start=1, start_times=0, fleet_id=4, change=True):
 
 def day():
     # 完成日常建造, 开发, 做菜任务
-    cook(timer, 3)
+    cook(timer, 3, force_click=False)
     resources = [90, 30, 90, 30]
     equipment_resources = [10, 90, 90, 30]
     build_manager = BuildManager(timer)

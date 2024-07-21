@@ -29,6 +29,7 @@ class OCRBackend:
         multiple=False,
         allow_nan=False,
         rgb_select=None,
+        tolerance=30,
         **kwargs,
     ):
         """识别任意字符串"""
@@ -61,7 +62,7 @@ class OCRBackend:
                 t = process.extractOne(t, candidates)[0]
             return t
 
-        img = pre_process_rgb(img, rgb_select)
+        img = pre_process_rgb(img, rgb_select, tolerance)
         results = self.read_text(img, allowlist, **kwargs)
         results = [(t[0], post_process_text(t[1]), t[2]) for t in results]
         if self.config.SHOW_OCR_INFO:
@@ -73,7 +74,9 @@ class OCRBackend:
         if multiple:
             return results
         else:
-            assert len(results) == 1
+            if not results:
+                print(f"OCR识别失败: {results}")
+                results = ["Unkown"]
             return results[0]
 
     def recognize_number(self, img, extra_chars="", multiple=False, allow_nan=False, **kwargs):

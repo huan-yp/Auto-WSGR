@@ -364,6 +364,7 @@ def cook(timer: Timer, position: int, force_click=False):
     """食堂做菜
     Args:
         position (int): 第几个菜谱
+        force_click (bool, optional): 当有菜正在生效时是否继续做菜. Defaults to False.
     """
     if position < 1 or position > 3:
         raise ValueError(f"不支持的菜谱编号:{position}")
@@ -371,11 +372,21 @@ def cook(timer: Timer, position: int, force_click=False):
     timer.goto_game_page("canteen_page")
     timer.click(*POSITION[position])
     try:
-        timer.click_image(IMG.restaurant_image[1], timeout=7.5, must_click=True)
-        if timer.image_exist(IMG.restaurant_image[2]) and force_click:
-            timer.click_image(IMG.restaurant_image[2], must_click=True)
-        timer.logger.info("做菜成功")
+        timer.click_image(IMG.restaurant_image.cook, timeout=7.5, must_click=True)
+        if timer.image_exist(IMG.restaurant_image.no_times):
+            timer.logger.info("今日用餐次数已经用尽")
+            return False
+        if timer.image_exist(IMG.restaurant_image.have_cook):
+            timer.logger.info("当前菜的效果正在生效")
+            if force_click:
+                timer.relative_click(0.541, 0.628)
+                timer.logger.info("做菜成功")
+            else:
+                timer.relative_click(0.65, 0.628)
+                timer.logger.info("取消做菜")
+                timer.relative_click(0.788, 0.207)
         return True
+
     except:
         timer.logger.error(f"不支持的菜谱编号:{position}, 请检查该菜谱是否有效, 或者检查今日用餐次数是否已经用尽")
         return False
