@@ -98,7 +98,7 @@ class OCRBackend:
                 t = t.lstrip("0")
 
             # 资源可以是K/M结尾
-            if t.endswith("K"):
+            if t.endswith("K") or t.endswith("k"):
                 return eval(t[:-1]) * 1000
             if t.endswith("M"):
                 return eval(t[:-1]) * 1000000
