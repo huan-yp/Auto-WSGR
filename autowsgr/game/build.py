@@ -136,6 +136,7 @@ class BuildManager:
                 pos = self.timer.click_image(IMG.build_image[type].complete, timeout=3, must_click=True)
                 if self.timer.image_exist(IMG.build_image[type].full_depot):
                     self.timer.logger.error(f"{type} 仓库已满")
+                    self.timer.go_main_page()
                     return False
             except Exception as e:
                 self.timer.logger.error(f"收取 {type} 失败: {e}")

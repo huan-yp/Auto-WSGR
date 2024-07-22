@@ -13,6 +13,7 @@ from autowsgr.constants.image_templates import IMG
 from autowsgr.constants.other_constants import ALL_PAGES, NO
 from autowsgr.constants.ui import WSGR_UI, Node
 from autowsgr.timer.backends import EasyocrBackend
+from autowsgr.timer.backends.ocr_backend import OCRBackend
 from autowsgr.timer.controllers import AndroidController, WindowsController
 from autowsgr.utils.io import yaml_to_dict
 from autowsgr.utils.operator import unzip_element
@@ -44,9 +45,6 @@ class Timer(AndroidController, WindowsController, EasyocrBackend):
     got_ship_num = 0  # 当天已掉落的船
     got_loot_num = 0  # 当天已掉落的胖次
     quick_repaired_cost = 0  # 消耗快修数量
-    got_ship_name = None  # 掉落船的名字
-    ship_type = None  # 掉落船的类型
-    ship_star = None  # 掉落船的星级
     last_expedition_check_time = time.time()
 
     def __init__(self, config, logger):
@@ -58,9 +56,15 @@ class Timer(AndroidController, WindowsController, EasyocrBackend):
 
         dev = self.connect_android()
         AndroidController.__init__(self, config, logger, dev)
-
         # TODO: 暂时只支持easyocr, 之后加入多后端切换
         EasyocrBackend.__init__(self, config, logger)
+
+        # if self.config.OCR_BACKEND == "easyocr":
+        #     EasyocrBackend.__init__(self, config, logger)
+        # elif self.config.OCR_BACKEND == "paddleocr":
+        #     PaddleOCRBackend.__init__(self, config, logger)
+        # else:
+        #     raise ValueError(f"Unknown OCR_BACKEND: {self.config.OCR_BACKEND}")
 
         # 获取调用栈信息
         stack = inspect.stack()

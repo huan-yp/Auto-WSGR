@@ -90,7 +90,7 @@ class OCRBackend:
                 return process_number(nums[0]), process_number(nums[1])
 
             # 决战，费用是f"x{cost}"格式
-            t = t.lstrip("x")
+            t = t.lstrip("xX")
             # 战后经验值 f"Lv.{exp}"格式
             t = t.lstrip("Lv.")
             # 建造资源有前导0
@@ -116,7 +116,9 @@ class OCRBackend:
         if multiple:
             return results
         else:
-            assert len(results) == 1, f"OCR识别数字失败: {results}"
+            if not len(results) == 1:
+                self.logger.error(f"OCR识别数字失败: {results}")
+                results = []
             return results[0]
 
     def recognize_ship(self, image, candidates, **kwargs):
@@ -181,6 +183,44 @@ class EasyocrBackend(OCRBackend):
         else:
             raise ValueError(f"Invalid sort method: {sort}")
 
+        if self.config.SHOW_OCR_INFO:
+            self.logger.debug(f"原始OCR结果: {results}")
+        return results
+
+
+from paddleocr import PaddleOCR
+
+
+class PaddleOCRBackend(OCRBackend):
+    WORD_REPLACE = {
+        "鲍鱼": "鲃鱼",
+    }
+
+    def __init__(self, config, logger) -> None:
+        super().__init__(config, logger)
+        # TODO:后期单独训练模型，提高识别准确率，暂时使用现成的模型
+        self.reader = PaddleOCR(
+            use_angle_cls=True,
+            det_model_dir="https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_det_infer.tar",
+            rec_model_dir="https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_rec_server_infer.tar",
+            show_log=False,
+            lang="ch",
+        )  # need to run only once to download and load model into memory
+
+    def read_text(self, img, allowlist, **kwargs):
+
+        def get_center(pos1, pos2):
+            x1, y1 = pos1
+            x2, y2 = pos2
+            return (x1 + x2) / 2, (y1 + y2) / 2
+
+        results = self.reader.ocr(img, cls=False, **kwargs)
+        self.logger.log_image(img, name=None, ignore_existed_image=True)
+        if results == [None]:
+            results = []
+        else:
+            results = results[0]
+        results = [(get_center(r[0][1], r[0][3]), r[1][0], r[1][1]) for r in results]
         if self.config.SHOW_OCR_INFO:
             self.logger.debug(f"原始OCR结果: {results}")
         return results

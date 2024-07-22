@@ -373,13 +373,14 @@ def cook(timer: Timer, position: int, force_click=False):
     timer.click(*POSITION[position])
     try:
         timer.click_image(IMG.restaurant_image.cook, timeout=7.5, must_click=True)
-        if timer.image_exist(IMG.restaurant_image.no_times):
-            timer.logger.info("今日用餐次数已经用尽")
-            return False
         if timer.image_exist(IMG.restaurant_image.have_cook):
             timer.logger.info("当前菜的效果正在生效")
             if force_click:
-                timer.relative_click(0.541, 0.628)
+                timer.relative_click(0.414, 0.628)
+                if timer.image_exist(IMG.restaurant_image.no_times):
+                    timer.logger.info("今日用餐次数已经用尽")
+                    timer.relative_click(0.788, 0.207)
+                    return False
                 timer.logger.info("做菜成功")
             else:
                 timer.relative_click(0.65, 0.628)
