@@ -44,7 +44,7 @@ def day():
 
 week()
 
-day()  # 日常做菜
+# day()  # 日常做菜
 
 operation = da.DailyOperation(f"{os.path.dirname(os.path.abspath(__file__))}/user_settings.yaml")
 operation.run()

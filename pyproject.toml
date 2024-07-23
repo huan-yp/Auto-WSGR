@@ -25,6 +25,8 @@ python = "3.9.*"
 thefuzz = "^0.22.1"
 paddlepaddle = "2.6.1"
 paddleocr = "2.8.1"
+numpy = "<2.0"
+python-bidi = "0.4.2"
 
 
 [tool.poetry-version-plugin]
