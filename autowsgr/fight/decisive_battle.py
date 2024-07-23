@@ -516,7 +516,7 @@ class DecisiveBattle:
                 if i1 == float("inf"):
                     raise ValueError("未找到 '(' 或 '（'")
                 i2 = src.index("/")
-                src = src.rsplit("(（")
+                src = src.rstrip(")）")
                 self.stats.exp = int(src[i1 + 1 : i2])
                 self.stats.need = int(src[i2 + 1 :])
                 self.timer.logger.debug(f"当前经验：{self.stats.exp}，升级需要经验：{self.stats.need}")
