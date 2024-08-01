@@ -3,7 +3,6 @@ import subprocess
 from typing import List, Tuple
 
 import cv2
-import easyocr
 import numpy as np
 from thefuzz import process
 
@@ -17,7 +16,9 @@ class OCRBackend:
         self.config = config
         self.logger = logger
 
-    def read_text(self, img, allowlist: List[str] = None, sort: str = "left-to-right", **kwargs):
+    def read_text(
+        self, img, allowlist: List[str] = None, sort: str = "left-to-right", **kwargs
+    ):
         """识别文字的具体实现，返回字符串格式识别结果"""
         raise NotImplementedError
 
@@ -79,7 +80,9 @@ class OCRBackend:
                 results = ["Unkown"]
             return results[0]
 
-    def recognize_number(self, img, extra_chars="", multiple=False, allow_nan=False, **kwargs):
+    def recognize_number(
+        self, img, extra_chars="", multiple=False, allow_nan=False, **kwargs
+    ):
         """识别数字"""
 
         def process_number(t: str):
@@ -105,7 +108,9 @@ class OCRBackend:
 
             return eval(t)
 
-        results = self.recognize(img, allowlist="0123456789" + extra_chars, multiple=True, **kwargs)
+        results = self.recognize(
+            img, allowlist="0123456789" + extra_chars, multiple=True, **kwargs
+        )
         results = [(t[0], process_number(t[1]), t[2]) for t in results]
         if self.config.SHOW_OCR_INFO:
             self.logger.debug(f"数字解析结果：{results}")
@@ -147,10 +152,13 @@ class OCRBackend:
 class EasyocrBackend(OCRBackend):
     WORD_REPLACE = {
         "鲍鱼": "鲃鱼",
+        "鲴鱼": "鲃鱼",
     }
 
     def __init__(self, config, logger) -> None:
         super().__init__(config, logger)
+        import easyocr
+
         self.reader = easyocr.Reader(["ch_sim", "en"])
 
     def read_text(
@@ -172,7 +180,12 @@ class EasyocrBackend(OCRBackend):
             return (x1 + x2) / 2, (y1 + y2) / 2
 
         results = self.reader.readtext(
-            img, allowlist=allowlist, min_size=min_size, text_threshold=text_threshold, low_text=low_text, **kwargs
+            img,
+            allowlist=allowlist,
+            min_size=min_size,
+            text_threshold=text_threshold,
+            low_text=low_text,
+            **kwargs,
         )
         results = [(get_center(r[0][0], r[0][2]), r[1], r[2]) for r in results]
 
@@ -188,9 +201,6 @@ class EasyocrBackend(OCRBackend):
         return results
 
 
-from paddleocr import PaddleOCR
-
-
 class PaddleOCRBackend(OCRBackend):
     WORD_REPLACE = {
         "鲍鱼": "鲃鱼",
@@ -199,6 +209,8 @@ class PaddleOCRBackend(OCRBackend):
     def __init__(self, config, logger) -> None:
         super().__init__(config, logger)
         # TODO:后期单独训练模型，提高识别准确率，暂时使用现成的模型
+        from paddleocr import PaddleOCR
+
         self.reader = PaddleOCR(
             use_angle_cls=True,
             det_model_dir="https://paddleocr.bj.bcebos.com/PP-OCRv4/chinese/ch_PP-OCRv4_det_infer.tar",

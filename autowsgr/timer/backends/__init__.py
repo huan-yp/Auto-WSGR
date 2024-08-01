@@ -1,1 +1,1 @@
-from .ocr_backend import EasyocrBackend, PaddleOCRBackend
+from .ocr_backend import EasyocrBackend, OCRBackend, PaddleOCRBackend
