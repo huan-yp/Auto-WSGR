@@ -120,7 +120,16 @@ def get_loot_and_ship(timer: Timer):
         image_crop = crop_image(image, *POS["map_page"][key])
         result = timer.recognize_number(image_crop, extra_chars="/", allow_nan=True)
         if result:
-            ret[key], ret[key + "_max"] = result[1]
+            if isinstance(result[1], tuple):
+                ret[key], ret[key + "_max"] = result[1]
+            else:
+                # 如果ocr把"/"识别为"1",则使用下列方法
+                if key == "loot":
+                    ret[key] = result[1][0:-3]
+                    ret[key + "_max"] = 50
+                if key == "ship":
+                    ret[key] = result[1][0:-4]
+                    ret[key + "_max"] = 500
         else:
             timer.logger.error(f"读取{key}数量失败")
     try:
@@ -292,14 +301,33 @@ def get_exercise_stats(timer: Timer, robot=None):
         up = True
     if up:
         for position in range(1, 5):
-            result.append(math.sqrt(CalcDis(timer.get_pixel(770, position * 110 - 10), COLORS.CHALLENGE_BLUE)) <= 50)
+            result.append(
+                math.sqrt(
+                    CalcDis(
+                        timer.get_pixel(770, position * 110 - 10), COLORS.CHALLENGE_BLUE
+                    )
+                )
+                <= 50
+            )
         timer.swipe(800, 400, 800, 200)  # 下滑
         timer.update_screen()
-        result.append(math.sqrt(CalcDis(timer.get_pixel(770, 4 * 110 - 10), COLORS.CHALLENGE_BLUE)) <= 50)
+        result.append(
+            math.sqrt(
+                CalcDis(timer.get_pixel(770, 4 * 110 - 10), COLORS.CHALLENGE_BLUE)
+            )
+            <= 50
+        )
         return result
     if down:
         for position in range(1, 5):
-            result.append(math.sqrt(CalcDis(timer.get_pixel(770, position * 110 - 10), COLORS.CHALLENGE_BLUE)) <= 50)
+            result.append(
+                math.sqrt(
+                    CalcDis(
+                        timer.get_pixel(770, position * 110 - 10), COLORS.CHALLENGE_BLUE
+                    )
+                )
+                <= 50
+            )
         if robot is not None:
             result.insert(1, robot)
         else:
@@ -307,7 +335,10 @@ def get_exercise_stats(timer: Timer, robot=None):
             timer.update_screen()
             result.insert(
                 1,
-                math.sqrt(CalcDis(timer.get_pixel(770, 4 * 110 - 10), COLORS.CHALLENGE_BLUE)) <= 50,
+                math.sqrt(
+                    CalcDis(timer.get_pixel(770, 4 * 110 - 10), COLORS.CHALLENGE_BLUE)
+                )
+                <= 50,
             )
 
             timer.swipe(800, 400, 800, 200)  # 下滑
