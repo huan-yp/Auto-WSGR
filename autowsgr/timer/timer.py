@@ -24,9 +24,9 @@ class Timer(AndroidController, WindowsController):
     # 战舰少女R专用控制器
     everyday_check = True
     ui = WSGR_UI
-    plan_root_list = {}
-    ship_stats = [0, 0, 0, 0, 0, 0, 0]  # 我方舰船状态
-    enemy_type_count = {}  # 字典,每种敌人舰船分别有多少
+    plan_root_list: ClassVar[dict] = {}
+    ship_stats: ClassVar[list] = [0, 0, 0, 0, 0, 0, 0]  # 我方舰船状态
+    enemy_type_count: ClassVar[dict] = {}  # 字典,每种敌人舰船分别有多少
     now_page = None  # 当前所在 UI 名
     resources = None  # 当前四项资源量
     got_ship_num = 0  # 当天已掉落的船
@@ -76,17 +76,17 @@ class Timer(AndroidController, WindowsController):
             self.logger.warning(
                 f"从脚本运行目录加载plans失败，将会从默认目录 {os.path.join(DATA_ROOT, 'plans')} 加载plans",
             )
-            config.PLAN_ROOT = os.path.join(DATA_ROOT, "plans")
+            config.PLAN_ROOT = os.path.join(DATA_ROOT, 'plans')
 
         self.create_nested_dict(config.PLAN_ROOT)
         self.plan_root_list = self.update_nested_dict(
-            self.create_nested_dict(os.path.join(DATA_ROOT, "plans")),
+            self.create_nested_dict(os.path.join(DATA_ROOT, 'plans')),
             self.create_nested_dict(config.PLAN_ROOT),
         )
 
         # 加载舰船名文件
-        defult_ship_names = yaml_to_dict(os.path.join(OCR_ROOT, "ship_name.yaml"))
-        self.logger.info(f"尝试从脚本运行目录加载ship_names.yaml")
+        defult_ship_names = yaml_to_dict(os.path.join(OCR_ROOT, 'ship_name.yaml'))
+        self.logger.info('尝试从脚本运行目录加载ship_names.yaml')
         if os.path.exists(
             os.path.abspath(
                 os.path.join(script_running_directory, '..', 'ship_names.yaml'),
@@ -96,9 +96,10 @@ class Timer(AndroidController, WindowsController):
                 os.path.join(script_running_directory, '..', 'ship_names.yaml'),
             )
             self.ship_names = yaml_to_dict(config.SHIP_NAME_PATH)
-            self.logger.info(f"Succeed to load ship_name file:{config.SHIP_NAME_PATH}")
+            self.logger.info(f'Succeed to load ship_name file:{config.SHIP_NAME_PATH}')
             self.ship_names = self.update_nested_dict(
-                defult_ship_names, self.ship_names
+                defult_ship_names,
+                self.ship_names,
             )
         else:
             self.ship_names = defult_ship_names
@@ -115,17 +116,17 @@ class Timer(AndroidController, WindowsController):
         Returns:
             dict: 嵌套字典，表示目录结构
         """
-        for root, dirs, files in os.walk(directory):
+        for root, _dirs, files in os.walk(directory):
             # 获取相对于根目录的路径
             rel_path = os.path.relpath(root, directory)
             # 获取当前层级的字典
             current_dict = self.plan_root_list
-            if rel_path != ".":
+            if rel_path != '.':
                 for part in rel_path.split(os.sep):
                     current_dict = current_dict.setdefault(part, {})
             # 将文件添加到当前层级的字典中
             for file in files:
-                file_key = file[:-5] if file.endswith(".yaml") else file
+                file_key = file[:-5] if file.endswith('.yaml') else file
                 # 赋予其绝对路径
                 current_dict[file_key] = os.path.abspath(os.path.join(root, file))
         return self.plan_root_list
