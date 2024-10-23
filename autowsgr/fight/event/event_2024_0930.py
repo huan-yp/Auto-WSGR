@@ -42,8 +42,8 @@ class EventFightPlan20240930(Event, NormalFightPlan):
         Event.__init__(self, timer, event)
 
     def _load_fight_info(self):
-        self.Info = EventFightInfo20240930(self.timer, self.chapter, self.map)
-        self.Info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
+        self.info = EventFightInfo20240930(self.timer, self.chapter, self.map)
+        self.info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
 
     def _change_fight_map(self, chapter_id, map_id):
         """选择并进入战斗地图(chapter-map)"""
@@ -51,7 +51,7 @@ class EventFightPlan20240930(Event, NormalFightPlan):
 
     def _go_fight_prepare_page(self) -> None:
         # 进入相应地图页面
-        if not self.timer.image_exist(self.Info.event_image[1]):
+        if not self.timer.image_exist(self.info.event_image[1]):
             self.timer.relative_click(*NODE_POSITION[self.map])
 
         if not self.timer.click_image(self.event_image[1], timeout=10):

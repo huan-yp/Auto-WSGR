@@ -29,8 +29,8 @@ class EventFightPlan20230117(PatrollingEvent, NormalFightPlan):
     def _load_fight_info(self):
         # 地图文件位置: autowsgr/data/map/event/{event_name}
         # event_name 通常采用活动开始日期
-        self.Info = EventFightInfo20230117(self.timer, self.chapter, self.map)
-        self.Info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
+        self.info = EventFightInfo20230117(self.timer, self.chapter, self.map)
+        self.info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
 
     def _change_fight_map(self, chapter_id, map_id):
         """对 normal_fight 的 _change_fight_map 的重写"""
@@ -77,8 +77,8 @@ class EventFightPlan20230117_2(PatrollingEvent, BattlePlan):
         self.timer.click(900, 500)
         self.timer.wait_pages('fight_prepare_page', after_wait=0.15)
         move_team(self.timer, self.fleet_id)
-        self.Info.ship_stats = detect_ship_stats(self.timer)
-        quick_repair(self.timer, self.repair_mode, self.Info.ship_stats)
+        self.info.ship_stats = detect_ship_stats(self.timer)
+        quick_repair(self.timer, self.repair_mode, self.info.ship_stats)
         return start_march(self.timer)
 
 

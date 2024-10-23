@@ -282,14 +282,11 @@ class Timer(AndroidController, WindowsController):
         try:
             if self.everyday_check:
                 self.logger.info('正在尝试关闭新闻, 领取奖励')
-                if not self.wait_image(
-                    IMG.start_image[6],
-                    timeout=2,
-                ):  # 新闻与公告,设为今日不再显示
+                if self.wait_image(IMG.start_image[6], timeout=2):  # 新闻与公告,设为今日不再显示
                     if not self.check_pixel((70, 485), (201, 129, 54)):
                         self.click(70, 485)
                     self.click(30, 30)
-                if not self.wait_image(IMG.start_image[7], timeout=7):  # 每日签到
+                if self.wait_image(IMG.start_image[7], timeout=7):  # 每日签到
                     self.click(474, 357)
                     self.confirm_operation(must_confirm=1, timeout=2)
                 self.everyday_check = False

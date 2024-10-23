@@ -112,7 +112,7 @@ class Logic:
 
         self.level1 = list(set(level1))
         self.level2 = list({'长跑训练', '肌肉记忆', *self.level1, *level2, '黑科技'})
-        self.flag_ships = list(set(flagship_priority))
+        self.flag_ships = list(flagship_priority)
         self.stats = stats
 
     def _choose_ship(self, must=False):
@@ -695,7 +695,7 @@ class DecisiveBattle:
             ship_stats=self.stats.ship_stats,
         )
         plan.run()
-        self.stats.ship_stats = plan.Info.fight_history.get_fight_results()[-1].ship_stats
+        self.stats.ship_stats = plan.info.fight_history.get_fight_results()[-1].ship_stats
 
     def _change_fleet(self, fleet):
         self.go_fleet_page()
@@ -749,8 +749,8 @@ class DecisiveBattle:
 class DecisiveBattlePlan(BattlePlan):
     def __init__(self, timer: Timer, formation, night, ship_stats) -> None:
         super().__init__(timer, None)
-        self.Info = DecisiveBattleInfo(timer)
-        self.Info.ship_stats = ship_stats
+        self.info = DecisiveBattleInfo(timer)
+        self.info.ship_stats = ship_stats
         self.node.formation = formation
         self.node.night = night
 

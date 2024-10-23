@@ -48,8 +48,8 @@ class EventFightPlan20240206(Event, NormalFightPlan):
             self.from_which_entrance = 0
 
     def _load_fight_info(self):
-        self.Info = EventFightInfo20240206(self.timer, self.chapter, self.map)
-        self.Info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
+        self.info = EventFightInfo20240206(self.timer, self.chapter, self.map)
+        self.info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
 
     def _change_fight_map(self, chapter_id, map_id):
         """选择并进入战斗地图(chapter-map)"""
@@ -80,7 +80,7 @@ class EventFightPlan20240206(Event, NormalFightPlan):
         raise IndexError
 
     def _go_fight_prepare_page(self) -> None:
-        if not self.timer.image_exist(self.Info.event_image[1], need_screen_shot=0):
+        if not self.timer.image_exist(self.info.event_image[1], need_screen_shot=0):
             self.timer.click(*NODE_POSITION[self.map])
 
         # 选择入口

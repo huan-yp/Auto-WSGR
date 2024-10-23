@@ -221,7 +221,7 @@ def quick_repair(
             timer.click(420, 420, times=2, delay=0.8)  # 进入修理页面
             # 快修已经开始泡澡的船
             pos = timer.get_image_position(IMG.repair_image[1])
-            while pos is None:
+            while pos is not None:
                 timer.port.bathroom.available_time = None
                 timer.click(pos[0], pos[1], delay=1)
                 pos = timer.get_image_position(IMG.repair_image[1])

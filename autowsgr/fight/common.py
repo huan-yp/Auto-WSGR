@@ -684,7 +684,7 @@ class DecisionBlock:
                         action='SL',
                     )
                     return None, 'need SL'
-                if not self.formation_when_spot_enemy_fails:
+                if self.formation_when_spot_enemy_fails:
                     value = self.formation_when_spot_enemy_fails
             info.fight_history.add_event(
                 '阵型选择',
@@ -827,7 +827,6 @@ class IndependentFightInfo(FightInfo):
                 520,
                 delay=0,
                 enable_subprocess=True,
-                not_show=True,
             )
         self.timer.update_screen()
 

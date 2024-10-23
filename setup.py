@@ -85,7 +85,7 @@ setup(
     dependency_links=[
         'https://download.pytorch.org/whl/cu123',
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     package_data={
         '': [
             'version.txt',
@@ -96,7 +96,6 @@ setup(
         ],  # 希望被打包的文件
     },
     classifiers=[
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Environment :: GPU :: NVIDIA CUDA',

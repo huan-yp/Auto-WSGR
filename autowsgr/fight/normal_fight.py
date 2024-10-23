@@ -239,8 +239,8 @@ class NormalFightPlan(FightPlan):
 
     def _load_fight_info(self):
         # 信息记录器
-        self.Info = NormalFightInfo(self.timer, self.chapter, self.map)
-        self.Info.load_point_positions(os.path.join(MAP_ROOT, 'normal'))
+        self.info = NormalFightInfo(self.timer, self.chapter, self.map)
+        self.info.load_point_positions(os.path.join(MAP_ROOT, 'normal'))
 
     def _go_map_page(self):
         """活动多点战斗必须重写该模块"""
@@ -269,7 +269,7 @@ class NormalFightPlan(FightPlan):
             self.timer.port.map = self.map
         # if not hasattr(self, "level_checked"):
         self.timer.wait_images(
-            [self.Info.map_image, IMG.identify_images['fight_prepare_page']],
+            [self.info.map_image, IMG.identify_images['fight_prepare_page']],
             timeout=3,
         )
         self._go_fight_prepare_page()
@@ -278,8 +278,8 @@ class NormalFightPlan(FightPlan):
             change_ships(self.timer, self.fleet_id, self.fleet)
             self.timer.port.fleet[self.fleet_id] = self.fleet[:]
 
-        self.Info.ship_stats = detect_ship_stats(self.timer)
-        quick_repair(self.timer, self.repair_mode, self.Info.ship_stats)
+        self.info.ship_stats = detect_ship_stats(self.timer)
+        quick_repair(self.timer, self.repair_mode, self.info.ship_stats)
 
         # TODO: 这里应该只catch network error，太宽的catch会导致其他错误被隐藏
         # except AssertionError:
@@ -296,101 +296,101 @@ class NormalFightPlan(FightPlan):
         *args,
         **kwargs,
     ):
-        state = self.update_state() if 'skip_update' not in kwargs else self.Info.state
+        state = self.update_state() if 'skip_update' not in kwargs else self.info.state
         if state == 'need SL':
             return 'need SL'
 
         # 进行 MapLevel 的决策
         if state == 'map_page':
-            self.Info.fight_history.add_event(
+            self.info.fight_history.add_event(
                 '自动回港',
-                {'position': self.Info.node, 'info': '正常'},
+                {'position': self.info.node, 'info': '正常'},
             )
             return literals.FIGHT_END_FLAG
 
         if state == 'fight_condition':
             value = self.fight_condition
             self.timer.click(*FIGHT_CONDITIONS_POSITION[value])
-            self.Info.last_action = value
-            self.Info.fight_history.add_event(
+            self.info.last_action = value
+            self.info.fight_history.add_event(
                 '战况选择',
-                {'position': self.Info.node},
+                {'position': self.info.node},
                 value,
             )
-            # self.fight_recorder.append(StageRecorder(self.Info, self.timer))
+            # self.fight_recorder.append(StageRecorder(self.info, self.timer))
             return literals.FIGHT_CONTINUE_FLAG
 
         # 不在白名单之内 SL
-        if self.Info.node not in self.selected_nodes:
+        if self.info.node not in self.selected_nodes:
             # 可以撤退点撤退
             if state == 'spot_enemy_success':
                 self.timer.click(677, 492, delay=0)
-                self.Info.last_action = 'retreat'
-                self.Info.fight_history.add_event(
+                self.info.last_action = 'retreat'
+                self.info.fight_history.add_event(
                     '索敌成功',
-                    {'position': self.Info.node, 'enemys': '不在预设点, 不进行索敌'},
+                    {'position': self.info.node, 'enemys': '不在预设点, 不进行索敌'},
                     '撤退',
                 )
                 return literals.FIGHT_END_FLAG
             # 不能撤退退游戏
             if state == 'formation':
-                self.Info.fight_history.add_event(
+                self.info.fight_history.add_event(
                     '阵型选择',
-                    {'position': self.Info.node},
+                    {'position': self.info.node},
                     'SL',
                 )
                 return 'need SL'
             if state == 'fight_period':
-                self.Info.fight_history.add_event(
+                self.info.fight_history.add_event(
                     '进入战斗',
-                    {'position': self.Info.node},
+                    {'position': self.info.node},
                     'SL',
                 )
                 return 'need SL'
 
         elif state == 'proceed':
-            is_proceed = self.nodes[self.Info.node].proceed and check_blood(
-                self.Info.ship_stats,
-                self.nodes[self.Info.node].proceed_stop,
+            is_proceed = self.nodes[self.info.node].proceed and check_blood(
+                self.info.ship_stats,
+                self.nodes[self.info.node].proceed_stop,
             )
 
             if is_proceed:
                 self.timer.click(325, 350)
-                self.Info.last_action = 'yes'
-                self.Info.fight_history.add_event(
+                self.info.last_action = 'yes'
+                self.info.fight_history.add_event(
                     '继续前进',
-                    {'position': self.Info.node, 'ship_stats': self.Info.ship_stats},
+                    {'position': self.info.node, 'ship_stats': self.info.ship_stats},
                     '前进',
                 )
                 return literals.FIGHT_CONTINUE_FLAG
             self.timer.click(615, 350)
-            self.Info.last_action = 'no'
-            self.Info.fight_history.add_event(
+            self.info.last_action = 'no'
+            self.info.fight_history.add_event(
                 '继续前进',
-                {'position': self.Info.node, 'ship_stats': self.Info.ship_stats},
+                {'position': self.info.node, 'ship_stats': self.info.ship_stats},
                 '回港',
             )
             return literals.FIGHT_END_FLAG
 
         elif state == 'flagship_severe_damage':
             self.timer.click_image(IMG.fight_image[4], must_click=True, delay=0.25)
-            self.Info.fight_history.add_event(
+            self.info.fight_history.add_event(
                 '自动回港',
-                {'position': self.Info.node, 'info': '旗舰大破'},
+                {'position': self.info.node, 'info': '旗舰大破'},
             )
             return 'fight end'
 
         # Todo:燃油耗尽自动回港
 
         # 进行通用 NodeLevel 决策
-        action, fight_stage = self.nodes[self.Info.node].make_decision(
+        action, fight_stage = self.nodes[self.info.node].make_decision(
             state,
-            self.Info.last_state,
-            self.Info.last_action,
-            self.Info,
+            self.info.last_state,
+            self.info.last_action,
+            self.info,
         )
-        self.Info.last_action = action
-        # self.fight_recorder.append(StageRecorder(self.Info, self.timer))
+        self.info.last_action = action
+        # self.fight_recorder.append(StageRecorder(self.info, self.timer))
 
         return fight_stage
 
@@ -573,5 +573,5 @@ class NormalFightPlan(FightPlan):
 
         self._move_chapter(chapter)
         self._move_map(map, chapter)
-        self.Info.chapter = self.chapter
-        self.Info.map = self.map
+        self.info.chapter = self.chapter
+        self.info.map = self.map

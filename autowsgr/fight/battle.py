@@ -63,7 +63,7 @@ class BattleInfo(FightInfo):
     def _before_match(self):
         # 点击加速
         if self.state in ['proceed']:
-            self.timer.click(380, 520, delay=0, enable_subprocess=True, not_show=True)
+            self.timer.click(380, 520, delay=0, enable_subprocess=True)
         self.timer.update_screen()
 
     def _after_match(self):
@@ -96,7 +96,7 @@ class BattlePlan(FightPlan):
         else:
             node_args = node_defaults
         self.node = DecisionBlock(timer, node_args)
-        self.Info = BattleInfo(timer)
+        self.info = BattleInfo(timer)
 
     def _go_fight_prepare_page(self):
         self.timer.goto_game_page('battle_page')
@@ -109,23 +109,23 @@ class BattlePlan(FightPlan):
         self._go_fight_prepare_page()
         self.timer.click(180 * ((self.map - 1) % 5 + 1), 200)
         self.timer.wait_pages('fight_prepare_page', after_wait=0.15)
-        self.Info.ship_stats = detect_ship_stats(self.timer)
-        quick_repair(self.timer, self.repair_mode, ship_stats=self.Info.ship_stats)
+        self.info.ship_stats = detect_ship_stats(self.timer)
+        quick_repair(self.timer, self.repair_mode, ship_stats=self.info.ship_stats)
         return start_march(self.timer)
 
     def _make_decision(self, *args, **kwargs) -> str:
-        state = self.update_state() if 'skip_update' not in kwargs else self.Info.state
+        state = self.update_state() if 'skip_update' not in kwargs else self.info.state
         if state == 'need SL':
             return 'need SL'
-        if self.Info.state == 'battle_page':
+        if self.info.state == 'battle_page':
             return literals.FIGHT_END_FLAG
 
         # 进行通用 NodeLevel 决策
         action, fight_stage = self.node.make_decision(
-            self.Info.state,
-            self.Info.last_state,
-            self.Info.last_action,
-            self.Info,
+            self.info.state,
+            self.info.last_state,
+            self.info.last_action,
+            self.info,
         )
-        self.Info.last_action = action
+        self.info.last_action = action
         return fight_stage

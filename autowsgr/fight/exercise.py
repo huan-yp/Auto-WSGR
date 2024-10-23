@@ -114,7 +114,6 @@ class NormalExerciseInfo(FightInfo):
                 520,
                 delay=0,
                 enable_subprocess=True,
-                not_show=True,
             )
 
         self.timer.update_screen()

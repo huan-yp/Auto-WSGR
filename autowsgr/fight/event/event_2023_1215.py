@@ -28,15 +28,15 @@ class EventFightPlan20231215(Event, NormalFightPlan):
         Event.__init__(self, timer, event)
 
     def _load_fight_info(self):
-        self.Info = EventFightInfo20231215(self.timer, self.chapter, self.map)
-        self.Info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
+        self.info = EventFightInfo20231215(self.timer, self.chapter, self.map)
+        self.info.load_point_positions(os.path.join(MAP_ROOT, 'event', self.event_name))
 
     def _change_fight_map(self, chapter_id, map_id):
         """选择并进入战斗地图(chapter-map)"""
         self.change_difficulty(chapter_id)
 
     def _go_fight_prepare_page(self) -> None:
-        if not self.timer.image_exist(self.Info.event_image[1], need_screen_shot=0):
+        if not self.timer.image_exist(self.info.event_image[1], need_screen_shot=0):
             self.timer.click(*NODE_POSITION[self.map])
         self.timer.wait_image(self.event_image[1])
         self.timer.click(850, 490)

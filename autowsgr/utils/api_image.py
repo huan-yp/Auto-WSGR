@@ -28,7 +28,7 @@ def absolute_to_relative(absolute_pos, resolution=(960, 540)):
     """将绝对坐标转换为相对坐标"""
     abs_x, abs_y = absolute_pos
     _w, _h = resolution
-    assert 0 <= abs_x <= _w and 0 <= abs_y <= _h, 'abs_x and abs_y should be in [0, resolution]'
+    assert 0 <= abs_x <= _w and 0 <= abs_y <= _h, f'{abs_x, abs_y} should be in {resolution}'
     rel_x = abs_x / _w
     rel_y = abs_y / _h
     return rel_x, rel_y
