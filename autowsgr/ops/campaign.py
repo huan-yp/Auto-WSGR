@@ -105,6 +105,13 @@ def parse_campaign_name(name: str) -> tuple[int, str]:
     return result
 
 
+# 战役名 → 专属阵型覆盖; 未列出的战役仍走默认复纵阵
+CAMPAIGN_FORMATION_OVERRIDES: dict[str, Formation] = {
+    '困难战列': Formation.single_horizontal,
+}
+"""战役专属阵型表 (键为完整战役名, 如 ``"困难战列"``)。"""
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # 战役执行器
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -122,7 +129,8 @@ class CampaignRunner:
     times:
         重复次数。
     formation:
-        战斗阵型。
+        战斗阵型 (``Formation`` 或 1-5 的整数); ``None`` 时按
+        :data:`CAMPAIGN_FORMATION_OVERRIDES` 查表, 未命中则用复纵阵。
     night:
         是否夜战。
     repair_mode:
@@ -134,7 +142,7 @@ class CampaignRunner:
         ctx: GameContext,
         campaign_name: str,
         times: int = 3,
-        formation: Formation = Formation.double_column,
+        formation: Formation | int | None = None,
         night: bool = True,
         repair_mode: RepairMode = RepairMode.moderate_damage,
     ) -> None:
@@ -143,7 +151,11 @@ class CampaignRunner:
         self._engine = CombatEngine(ctx)
         self._campaign_name = campaign_name
         self._times = times
-        self._formation = formation
+        self._formation = (
+            Formation(formation)
+            if formation is not None
+            else CAMPAIGN_FORMATION_OVERRIDES.get(campaign_name, Formation.double_column)
+        )
         self._night = night
         self._repair_mode = repair_mode
 
@@ -185,6 +197,12 @@ class CampaignRunner:
                 )
                 results.append(result)
                 _log.info('[OPS] 战役次数已用完')
+                # 主动退回地图页面: 此时仍停在出征准备页, 不退的话下一个
+                # 任务的导航要靠漂移对账兜底 (栈预测与实际不符)。
+                try:
+                    BattlePreparationPage(self._ctx).go_back()
+                except NavigationError as e:
+                    _log.warning('[OPS] 战役次数用尽后回退地图失败: {}', e)
                 break
 
             # 同步战前信息到上下文
@@ -274,18 +292,17 @@ class CampaignRunner:
             ``False`` 表示超时仍在当前页面 (可能是战役次数用尽)。
         """
         page.start_battle()
-        try:
-            wait_leave_page(
-                self._ctrl,
-                checker=BaseBattlePreparation.is_current_page,
-                timeout=1.5,
-                source=PageName.BATTLE_PREP,
-                target='combat',
-            )
-        except NavigationError:
-            return False
-        else:
-            return True
+        # probe 模式: 次数用尽时超时是预期结果, 不抛 NavigationError
+        # (构造该异常会 ERROR 记录 + NavError 截图, 污染错误日志)
+        screen = wait_leave_page(
+            self._ctrl,
+            checker=BaseBattlePreparation.is_current_page,
+            timeout=1.5,
+            source=PageName.BATTLE_PREP,
+            target='combat',
+            probe=True,
+        )
+        return screen is not None
 
     def _start_battle_with_retry(self, page: BattlePreparationPage) -> bool:
         """尝试出征，失败后重试一次。
